@@ -476,6 +476,23 @@ button.chip:hover { background: var(--accent); }
 .chip-ev .gt { opacity: 0.8; font-weight: 500; }
 .chip-ev .gn { font-weight: 500; }
 
+/* Phones, day view: a strip with the week's dates under the toolbar */
+.wk-strip { display: none; }
+@media (max-width: 900px) {
+  .wk-strip { flex: none; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 4px 8px 8px; border-bottom: 1px solid var(--border); background: var(--background); }
+  .wk-day { display: grid; justify-items: center; gap: 2px; padding: 2px 0; position: relative; }
+  .wk-day .dow { font-size: 12px; font-weight: 600; color: var(--muted-foreground); }
+  .wk-day .num { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; font-size: 18px; }
+  .wk-day.today .num { color: var(--primary); font-weight: 700; }
+  .wk-day.sel .num { background: var(--foreground); color: var(--background); font-weight: 600; }
+  .wk-day.sel.today .num { background: var(--primary); color: var(--primary-foreground); }
+  .wk-day.busy::after { content: ""; position: absolute; bottom: -3px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--destructive); }
+  /* The strip already shows the day, so the single-day header above the hours goes */
+  .gcal-main.mode-day .tg-head { display: none; }
+}
+.slide-next { animation: slide-from-right 0.22s ease-out; }
+.slide-prev { animation: slide-from-left 0.22s ease-out; }
+
 .mg-head { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--border); flex: none; }
 .mg-head span { text-align: center; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); padding: 6px 0; }
 .mg-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: minmax(112px, 1fr); min-height: 100%; }

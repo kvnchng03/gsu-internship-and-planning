@@ -7,6 +7,7 @@ import { openPosting } from "./dialogs";
 import { h, icon, toast } from "./dom";
 import { fetchGoogleEvents, googleConnected, googleSyncAvailable, type CalendarEvent } from "./google-calendar";
 import { render, scroller } from "./render";
+import { onSwipe } from "./swipe";
 
 const HOUR = 48; // pixels per hour in day and week views
 const MODES: [CalMode, string][] = [["day", "Day"], ["week", "Week"], ["month", "Month"]];
@@ -92,8 +93,25 @@ export function scheduleView(): HTMLElement[] {
     googleCtl);
 
   const main = m === "month" ? monthGrid(days, a, events, today) : timeGrid(days, events, today, m);
-  return [toolbar, h("div", { class: "gcal-body" }, sidebar(a, today), h("main", { class: "gcal-main" },
-    error ? h("p", { class: "alert", style: "margin:8px 12px 0" }, error) : null, main))];
+  const body = h("div", { class: "gcal-body" }, sidebar(a, today),
+    h("main", { class: "gcal-main mode-" + m, "data-swipe": "calendar" },
+      error ? h("p", { class: "alert", style: "margin:8px 12px 0" }, error) : null, main));
+  return m === "day" ? [toolbar, weekStrip(a, today), body] : [toolbar, body];
+}
+
+// Phones: swiping the calendar flips to the next or previous day (or week, or month), and swiping the week strip
+// flips a week, the way Apple Calendar does
+onSwipe("calendar", dir => { go(step(mode(), anchor(), dir)); return true; });
+onSwipe("calendar-week", dir => { go(addDays(anchor(), 7 * dir)); return true; });
+
+/** Day view on phones: the week around the day, to tap any date in it (like Apple Calendar's strip). */
+function weekStrip(a: Date, today: Date): HTMLElement {
+  const busy = new Set(deadlineEvents().map(e => isoDay(e.start)));
+  return h("div", { class: "wk-strip", "data-swipe": "calendar-week", role: "group", "aria-label": "Week" },
+    ...visibleDays("week", a).map(d => h("button", {
+      type: "button", "aria-label": d.toDateString(), "aria-pressed": String(sameDay(d, a)), onclick: () => go(d),
+      class: "wk-day" + (sameDay(d, a) ? " sel" : "") + (sameDay(d, today) ? " today" : "") + (busy.has(isoDay(d)) ? " busy" : ""),
+    }, h("span", { class: "dow" }, d.toLocaleDateString(undefined, { weekday: "narrow" })), h("span", { class: "num" }, String(d.getDate())))));
 }
 
 function sidebar(a: Date, today: Date): HTMLElement {

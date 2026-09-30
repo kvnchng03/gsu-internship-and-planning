@@ -1,6 +1,7 @@
 // Phones: swipe left or right anywhere in a view to move to the next or previous view in the tab bar.
-// Things that scroll sideways themselves (the board, the requirement boxes) scroll first; once one is at its
-// edge, the next swipe that way changes the view.
+// Things that scroll sideways themselves (the requirement boxes) scroll first; once one is at its edge, the next
+// swipe that way changes the view. A part of a view can take sideways swipes for itself, as the calendar does to
+// flip between days: mark it with data-swipe="<name>" and register a handler for that name.
 
 export interface Gesture { dx: number; dy: number; ms: number }
 /** Where a sideways-scrolling area stood when the finger went down. */
@@ -14,6 +15,10 @@ export function swipeStep(g: Gesture, scrollers: Edge[]): -1 | 0 | 1 {
   return scrollers.every(s => s.atStart) ? -1 : 0;
 }
 
+const handlers = new Map<string, (step: 1 | -1) => boolean>();
+/** Lets elements marked data-swipe="<name>" handle sideways swipes themselves instead of changing the view. */
+export function onSwipe(name: string, handle: (step: 1 | -1) => boolean): void { handlers.set(name, handle); }
+
 /** The sideways-scrolling areas between the touched element and the view, and whether each was at an edge. */
 function edgesAt(el: Element | null, stop: Element): Edge[] {
   const out: Edge[] = [];
@@ -26,22 +31,31 @@ function edgesAt(el: Element | null, stop: Element): Edge[] {
 
 /** Wires swiping on the view area. `enabled` says whether the phone tab bar is showing; `go` moves by one view. */
 export function watchSwipe(area: HTMLElement, enabled: () => boolean, go: (step: 1 | -1) => boolean): void {
-  let start: { x: number; y: number; t: number; edges: Edge[] } | null = null;
+  let start: { x: number; y: number; t: number; edges: Edge[]; owner: string } | null = null;
   area.addEventListener("touchstart", e => {
     const target = e.target as Element | null;
     start = null;
     // One finger, not typing, and only where the tab bar is showing
     if (e.touches.length !== 1 || !enabled() || target?.closest("input, textarea, select, [contenteditable]")) return;
     const t = e.touches[0];
-    start = { x: t.clientX, y: t.clientY, t: e.timeStamp, edges: edgesAt(target, area) };
+    const owner = target?.closest<HTMLElement>("[data-swipe]");
+    start = { x: t.clientX, y: t.clientY, t: e.timeStamp, edges: edgesAt(target, area), owner: owner && area.contains(owner) ? owner.dataset.swipe || "" : "" };
   }, { passive: true });
   area.addEventListener("touchcancel", () => { start = null; }, { passive: true });
   area.addEventListener("touchend", e => {
     if (!start || e.changedTouches.length !== 1) return;
     const t = e.changedTouches[0];
     const step = swipeStep({ dx: t.clientX - start.x, dy: t.clientY - start.y, ms: e.timeStamp - start.t }, start.edges);
+    const owner = start.owner;
     start = null;
-    if (!step || !go(step)) return;
+    if (!step) return;
+    const handle = handlers.get(owner);
+    if (handle) {
+      // Slide just the part that changed, found again because the redraw replaced it
+      if (handle(step)) area.querySelector(`[data-swipe="${owner}"]`)?.classList.add(step === 1 ? "slide-next" : "slide-prev");
+      return;
+    }
+    if (!go(step)) return;
     // Slide the new view in from the side the finger moved away from
     area.classList.remove("swipe-next", "swipe-prev");
     void area.offsetWidth;
