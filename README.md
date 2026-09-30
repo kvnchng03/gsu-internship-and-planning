@@ -20,6 +20,9 @@ The site is a web app you can install, and it works offline after the first visi
 - **Android (Chrome):** open the menu and tap **Install app**.
 - **Computer (Chrome or Edge):** click **Install** in the app's header.
 
+On a phone, the five views sit in a tab bar at the bottom.
+Swipe left or right to move between them.
+
 ## Calendar view
 
 The **Calendar** tab works like Google Calendar: day, week, and month views, a mini month to jump to any date, and a red line for the current time.

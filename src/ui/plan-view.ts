@@ -46,7 +46,7 @@ function rail(ctx: PlanContext, status: StatusOf): HTMLElement {
         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
       },
     },
-      h("span", { class: "top" }, h("span", { class: "gl" }, h("i", { class: "gdot" }), SHORT_GROUP[g.id]), h("span", { class: "mono" }, (d + pl + b) + "/" + cs.length)),
+      h("span", { class: "top" }, h("span", { class: "gl" }, h("i", { class: "gdot" }), h("span", { class: "gn" }, SHORT_GROUP[g.id])), h("span", { class: "mono" }, (d + pl + b) + "/" + cs.length)),
       h("span", { class: "bar" },
         h("span", { class: "d", style: "width:" + pct(d, cs.length) }),
         h("span", { class: "p", style: "width:" + pct(pl, cs.length) }),

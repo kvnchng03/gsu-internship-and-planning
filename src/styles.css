@@ -95,9 +95,10 @@ h1, h2, h3, h4, p { margin: 0; }
 .gdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--g, var(--muted-foreground)); flex: none; }
 .rg { display: grid; gap: 6px; text-align: left; min-width: 0; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--g) 7%, transparent); border: 1px solid color-mix(in srgb, var(--g) 22%, transparent); }
 .rg:hover { background: color-mix(in srgb, var(--g) 12%, transparent); }
-.rg .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--g); white-space: nowrap; }
-.rg .top .gl { display: inline-flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.rg .top .mono { color: var(--foreground); font-size: 12.5px; }
+.rg .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; color: var(--g); white-space: nowrap; }
+.rg .top .gl { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.rg .top .gn { overflow: hidden; text-overflow: ellipsis; }
+.rg .top .mono { flex: none; color: var(--foreground); font-size: 12.5px; }
 .rg .bar { display: flex; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--g) 12%, var(--background)); overflow: hidden; }
 .rg .bar span { display: block; height: 100%; }
 .rg .bar .d { background: var(--g); }
@@ -110,7 +111,8 @@ h1, h2, h3, h4, p { margin: 0; }
   .rail { gap: 12px; padding: 8px 12px; overflow-x: auto; scrollbar-width: none; }
   .rail::-webkit-scrollbar { display: none; }
   .rail-groups { display: flex; flex: none; gap: 8px; }
-  .rg { width: 150px; flex: none; }
+  /* Each box as wide as its name and count, so nothing spills out */
+  .rg { width: auto; min-width: 150px; flex: none; }
 }
 
 .panes { flex: 1; min-height: 0; display: grid; grid-template-columns: 320px minmax(0, 1fr) 320px; }
@@ -498,7 +500,12 @@ button.chip:hover { background: var(--accent); }
   .view-title { display: block; }
   .tabbar { display: flex; flex: none; border-top: 1px solid var(--border); background: var(--background); padding-bottom: env(safe-area-inset-bottom, 0px); }
   .tabbar button { flex: 1; min-width: 0; display: grid; justify-items: center; align-content: center; gap: 3px; padding: 7px 2px 5px; font-size: 11.5px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; }
-  .tabbar button[aria-pressed="true"] { color: var(--primary); }
+  .tabbar button[aria-pressed="true"] { color: var(--primary); font-weight: 600; }
+  .tabbar button .ico { box-sizing: content-box; padding: 4px 16px; border-radius: 999px; }
+  .tabbar button[aria-pressed="true"] .ico { background: var(--primary-soft); }
+  /* After a swipe, the new view slides in from the side */
+  #view.swipe-next > * { animation: slide-from-right 0.22s ease-out; }
+  #view.swipe-prev > * { animation: slide-from-left 0.22s ease-out; }
   .pane-tabs { display: block; flex: none; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--background); }
   .pane-tabs .seg { display: flex; }
   .pane-tabs .seg button { flex: 1; justify-content: center; }
@@ -544,7 +551,9 @@ button.chip:hover { background: var(--accent); }
   .card-head .t { flex: 1 1 100%; }
 }
 
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@keyframes slide-from-right { from { transform: translateX(32px); opacity: 0.4; } }
+@keyframes slide-from-left { from { transform: translateX(-32px); opacity: 0.4; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
 /* Phones and other touch screens: readable text (12px and up), tap targets of about 40px, and 16px inputs so
    iPhone doesn't zoom the page when one is tapped. Last in the file so it wins over the desktop sizes above. */
