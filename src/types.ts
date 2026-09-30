@@ -61,7 +61,7 @@ export interface State {
   plan: { terms: Term[] };
 }
 
-export type ViewId = "plan" | "postings" | "skills" | "summary";
+export type ViewId = "plan" | "postings" | "calendar" | "skills" | "summary";
 export type PaneId = "left" | "center" | "right";
 export type DialogState =
   | { kind: "course"; code: string; live: true }
@@ -75,6 +75,8 @@ export interface UI {
   libQuery: string;
   libFilter: "all" | "open" | "elective" | "done";
   postTab: "board" | "results";
+  /** First day (a Sunday) of the two weeks shown in the Calendar view, YYYY-MM-DD. */
+  calFrom: string;
   dialog: DialogState | null;
   armed: string | null;
   openSkills: Set<string>;

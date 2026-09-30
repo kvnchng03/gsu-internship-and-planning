@@ -12,7 +12,7 @@ const APP_TAG = "gsu-planner";
 export const googleSyncAvailable = (): boolean => !!CLIENT_ID;
 
 // The small part of Google Identity Services this uses
-interface TokenResponse { access_token?: string; error?: string; error_description?: string }
+interface TokenResponse { access_token?: string; expires_in?: number; error?: string; error_description?: string }
 interface TokenClient { requestAccessToken(opts?: { prompt?: string }): void }
 interface GoogleOAuth { initTokenClient(cfg: { client_id: string; scope: string; callback: (r: TokenResponse) => void; error_callback?: (e: { type: string }) => void }): TokenClient }
 declare global { interface Window { google?: { accounts: { oauth2: GoogleOAuth } } } }
@@ -31,8 +31,13 @@ function loadGis(): Promise<void> {
   return gisLoaded;
 }
 
+// The access token lives in memory only, for this visit (Google makes it last about an hour)
+let cached: { token: string; expires: number } | null = null;
+export const googleConnected = (): boolean => !!cached && cached.expires > Date.now();
+
 /** Asks Google for a short-lived access token. Google shows its own sign-in and consent screens. */
 async function getToken(): Promise<string> {
+  if (cached && cached.expires > Date.now() + 60_000) return cached.token;
   if (!CLIENT_ID) throw new Error("Google Calendar sync isn't set up for this site.");
   await loadGis();
   const oauth = window.google?.accounts.oauth2;
@@ -41,16 +46,30 @@ async function getToken(): Promise<string> {
     const client = oauth.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPE,
-      callback: r => (r.access_token ? resolve(r.access_token) : reject(new Error(r.error_description || r.error || "Google sign-in didn't finish."))),
+      callback: r => {
+        if (!r.access_token) { reject(new Error(r.error_description || r.error || "Google sign-in didn't finish.")); return; }
+        cached = { token: r.access_token, expires: Date.now() + (r.expires_in || 3600) * 1000 };
+        resolve(r.access_token);
+      },
       error_callback: e => reject(new Error(e.type === "popup_closed" ? "Google sign-in was closed." : "Google sign-in was blocked. Allow pop-ups and try again.")),
     });
     client.requestAccessToken();
   });
 }
 
-interface GEvent { id: string; extendedProperties?: { private?: Record<string, string> } }
+interface GEvent {
+  id: string;
+  summary?: string;
+  htmlLink?: string;
+  location?: string;
+  status?: string;
+  start?: { date?: string; dateTime?: string };
+  end?: { date?: string; dateTime?: string };
+  extendedProperties?: { private?: Record<string, string> };
+}
 async function api<T>(token: string, url: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(url, { ...init, headers: { Authorization: "Bearer " + token, "Content-Type": "application/json", ...(init.headers || {}) } });
+  if (res.status === 401) cached = null; // expired or revoked: the next try signs in again
   if (!res.ok) {
     const body = await res.json().catch(() => null) as { error?: { message?: string } } | null;
     throw new Error("Google Calendar said: " + (body?.error?.message || res.status + " " + res.statusText));
@@ -97,4 +116,56 @@ export async function syncToGoogle(events: CalEvent[]): Promise<SyncResult> {
     if (!keep.has(ledgerId)) { await api(token, API + "/" + encodeURIComponent(found.id), { method: "DELETE" }); result.removed++; }
   }
   return result;
+}
+
+/** One event on the schedule, from Google or from the app. */
+export interface ScheduleEvent {
+  id: string;
+  title: string;
+  /** YYYY-MM-DD the event is shown on. */
+  day: string;
+  /** "9:30 AM", or "" for all-day. */
+  time: string;
+  allDay: boolean;
+  link?: string;
+  location?: string;
+}
+
+const localDay = (d: Date) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+
+/**
+ * Events from the student's main Google Calendar between two days (inclusive), one entry per day an event covers.
+ * Deadlines this app synced are left out, since the schedule already shows them from the app.
+ */
+export async function fetchGoogleEvents(fromDay: string, toDay: string): Promise<ScheduleEvent[]> {
+  const token = await getToken();
+  const timeMin = new Date(fromDay + "T00:00:00").toISOString();
+  const timeMax = new Date(nextDay(toDay) + "T00:00:00").toISOString();
+  const items: GEvent[] = [];
+  let pageToken = "";
+  do {
+    const q = new URLSearchParams({ timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "250" });
+    if (pageToken) q.set("pageToken", pageToken);
+    const page = await api<{ items?: GEvent[]; nextPageToken?: string }>(token, API + "?" + q);
+    items.push(...(page.items || []));
+    pageToken = page.nextPageToken || "";
+  } while (pageToken);
+
+  const out: ScheduleEvent[] = [];
+  for (const e of items) {
+    if (e.status === "cancelled" || e.extendedProperties?.private?.app === APP_TAG) continue;
+    const allDay = !!e.start?.date;
+    const start = allDay ? new Date((e.start?.date || "") + "T00:00:00") : new Date(e.start?.dateTime || "");
+    // All-day events end the day after their last day; timed events end at their end time
+    const endRaw = allDay ? new Date((e.end?.date || e.start?.date || "") + "T00:00:00") : new Date(e.end?.dateTime || e.start?.dateTime || "");
+    const last = allDay ? new Date(endRaw.getTime() - 864e5) : endRaw;
+    if (isNaN(start.getTime())) continue;
+    const time = allDay ? "" : start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    for (let d = new Date(start.getFullYear(), start.getMonth(), start.getDate()), n = 0; d <= last && n < 60; d.setDate(d.getDate() + 1), n++) {
+      const day = localDay(d);
+      if (day < fromDay || day > toDay) continue;
+      out.push({ id: e.id + "-" + day, title: e.summary || "(No title)", day, time: n === 0 ? time : "", allDay: allDay || n > 0, link: e.htmlLink, location: e.location });
+    }
+  }
+  return out;
 }

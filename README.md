@@ -20,6 +20,11 @@ The site is a web app you can install, and it works offline after the first visi
 - **Android (Chrome):** open the menu and tap **Install app**.
 - **Computer (Chrome or Edge):** click **Install** in the app's header.
 
+## Calendar view
+
+The **Calendar** tab shows two weeks at a time: your application deadlines, and (after you tap **Show my Google Calendar**) your Google Calendar events alongside them.
+Nothing from your Google Calendar is saved in the app; it's read fresh each visit.
+
 ## Calendar and reminders
 
 Open **Internships → Calendar**.

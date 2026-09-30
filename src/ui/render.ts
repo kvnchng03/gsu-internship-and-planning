@@ -8,6 +8,7 @@ import { openPalette } from "./palette";
 import { canPromptInstall, promptInstall } from "./install";
 import { planView } from "./plan-view";
 import { postingsView } from "./postings-view";
+import { scheduleView } from "./schedule-view";
 import { skillsView } from "./skills-view";
 import { summaryView } from "./summary-view";
 
@@ -16,6 +17,7 @@ interface ViewDef { id: ViewId; label: string; icon: string; tabs?: [Tab, Tab, T
 export const VIEWS: ViewDef[] = [
   { id: "plan", label: "Plan", icon: "grid", tabs: [["Library", "list"], ["Plan", "grid"], ["Checks", "check"]] },
   { id: "postings", label: "Internships", icon: "briefcase" },
+  { id: "calendar", label: "Calendar", icon: "calendar" },
   { id: "skills", label: "Skills", icon: "book", tabs: [["Mine", "user"], ["Guide", "book"], ["Studying", "half"]] },
   { id: "summary", label: "Summary", icon: "file" },
 ];
@@ -26,7 +28,7 @@ export function armLater(key: string): void { setTimeout(() => { if (ui.armed ==
 function renderTop(): void {
   const brand = byId("brand");
   if (!brand.firstChild) {
-    brand.append(icon("cap"), h("span", { class: "name" }, "Internship Ledger"));
+    brand.append(icon("cap"), h("span", { class: "name" }, "GSU Internship & Planning"));
     byId("saveState").before(h("button", { type: "button", class: "btn ghost sm", id: "palBtn", title: "Search everything (⌘K)", onclick: openPalette },
       icon("search"), h("span", { class: "kbd" }, "⌘K")));
   }
@@ -73,7 +75,7 @@ export function render(): void {
   byId("exampleBanner").hidden = !state.example;
   renderTop();
   const have = haveMap(state.profile);
-  const parts = ui.view === "plan" ? planView() : ui.view === "postings" ? postingsView(have)
+  const parts = ui.view === "plan" ? planView() : ui.view === "postings" ? postingsView(have) : ui.view === "calendar" ? scheduleView()
     : ui.view === "summary" ? summaryView(have) : skillsView(have);
   byId("view").replaceChildren(...parts.filter((x): x is HTMLElement => !!x));
 

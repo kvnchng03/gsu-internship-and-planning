@@ -401,6 +401,30 @@ button.chip:hover { background: var(--accent); }
 
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); max-width: calc(100% - 32px); background: var(--popover); color: var(--foreground); border: 1px solid var(--border); box-shadow: 0 8px 24px oklch(0 0 0 / 0.18); padding: 10px 14px; border-radius: 10px; font-size: 13px; z-index: 10; }
 
+/* Calendar view: two weeks, seven days a row */
+.calnav { display: flex; align-items: center; gap: 6px; }
+.calrange { font-size: 14px; font-weight: 600; margin-left: 6px; white-space: nowrap; }
+.gstatus { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted-foreground); }
+.calgrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; padding: 12px 16px 24px; }
+.calday { background: var(--card); border: 1px solid var(--border); border-radius: 10px; min-height: 120px; display: flex; flex-direction: column; box-shadow: var(--shadow); min-width: 0; }
+.calday.past { opacity: 0.6; }
+.calday.today { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-soft); }
+.calday header { display: flex; align-items: baseline; gap: 6px; padding: 8px 10px 4px; }
+.calday .dow { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); }
+.calday .dnum { font-size: 15px; font-weight: 600; }
+.calday.today .dnum { color: var(--primary); }
+.calday .dmon { font-size: 11px; color: var(--muted-foreground); }
+.calitems { display: grid; gap: 4px; padding: 2px 6px 8px; align-content: start; }
+.ev { display: flex; align-items: baseline; gap: 5px; min-width: 0; padding: 3px 7px; border-radius: 6px; font-size: 12px; line-height: 1.35; text-align: left; text-decoration: none; color: var(--foreground); }
+.ev .evt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ev .evtime { font-size: 11px; color: var(--muted-foreground); flex: none; }
+.ev.google { background: var(--muted); border-left: 3px solid color-mix(in srgb, var(--muted-foreground) 45%, transparent); }
+.ev.google.allday { background: color-mix(in srgb, var(--muted-foreground) 14%, var(--card)); }
+.ev.google:hover { background: var(--accent); }
+.ev.deadline { font-weight: 600; background: var(--primary-soft); color: var(--primary); border-left: 3px solid var(--primary); align-items: center; }
+.ev.deadline.lvl-overdue, .ev.deadline.lvl-urgent { background: var(--destructive-soft); color: var(--destructive); border-left-color: var(--destructive); }
+.ev.deadline.lvl-soon { background: var(--warn-soft); color: var(--warn); border-left-color: var(--warn); }
+
 /* Phones: the three panes become tabs */
 @media (max-width: 900px) {
   .panes { grid-template-columns: 1fr; }
@@ -426,6 +450,12 @@ button.chip:hover { background: var(--accent); }
   .attn { padding: 12px 12px 0; }
   /* Posting details: the name gets the full width; the controls go on the next line */
   .card-head { flex-wrap: wrap; }
+  /* Calendar: a day-by-day list instead of a grid; empty days shrink to one line */
+  .calgrid { grid-template-columns: 1fr; gap: 6px; padding: 12px; }
+  .calday { min-height: 0; flex-direction: row; align-items: flex-start; }
+  .calday header { flex-direction: column; align-items: center; gap: 0; width: 52px; flex: none; padding: 8px 4px; }
+  .calday .calitems { flex: 1; padding: 8px 8px 8px 0; }
+  .calday.empty .calitems::before { content: "Nothing scheduled"; font-size: 12px; color: var(--muted-foreground); padding-top: 4px; }
   .card-head .t { flex: 1 1 100%; }
 }
 
