@@ -27,6 +27,9 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npx vite build
+        env:
+          # Public OAuth client ID for Google Calendar sync (a repository variable, not a secret). Empty hides the feature.
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist

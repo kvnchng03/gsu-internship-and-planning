@@ -67,7 +67,7 @@ export type DialogState =
   | { kind: "course"; code: string; live: true }
   | { kind: "posting-view"; id: string; live: true }
   | { kind: "posting"; id: string | null; live: false }
-  | { kind: "palette" | "copy" | "backup" | "restore"; live: false };
+  | { kind: "palette" | "copy" | "backup" | "restore" | "calendar"; live: false };
 export interface UI {
   view: ViewId;
   pane: Record<"plan" | "skills", PaneId>;

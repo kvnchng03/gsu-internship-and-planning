@@ -5,6 +5,7 @@ import { state, ui } from "../lib/store";
 import { renderDialog } from "./dialogs";
 import { byId, h, icon } from "./dom";
 import { openPalette } from "./palette";
+import { canPromptInstall, promptInstall } from "./install";
 import { planView } from "./plan-view";
 import { postingsView } from "./postings-view";
 import { skillsView } from "./skills-view";
@@ -29,6 +30,11 @@ function renderTop(): void {
     byId("saveState").before(h("button", { type: "button", class: "btn ghost sm", id: "palBtn", title: "Search everything (⌘K)", onclick: openPalette },
       icon("search"), h("span", { class: "kbd" }, "⌘K")));
   }
+  const install = document.getElementById("installBtn");
+  if (canPromptInstall() && !install) {
+    byId("palBtn").before(h("button", { type: "button", class: "btn sm", id: "installBtn", title: "Install this app",
+      onclick: async () => { await promptInstall(); render(); } }, icon("download"), h("span", { class: "lbl" }, "Install")));
+  } else if (!canPromptInstall() && install) install.remove();
   byId("views").replaceChildren(...VIEWS.map(v =>
     h("button", { type: "button", "aria-pressed": String(ui.view === v.id), onclick: () => { ui.view = v.id; render(); } },
       icon(v.icon), h("span", { class: "lbl" }, v.label))));

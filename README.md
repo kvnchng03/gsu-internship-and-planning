@@ -12,6 +12,36 @@ A free planner for Georgia State accounting (B.B.A.) students.
 - **Skills:** a guide to each accounting skill, how to check yourself, and free places to learn it.
 - **Summary:** a one-page plan you can copy and send to your advisor.
 
+## Install it on your phone
+
+The site is a web app you can install, and it works offline after the first visit.
+
+- **iPhone (Safari):** tap Share, then **Add to Home Screen**.
+- **Android (Chrome):** open the menu and tap **Install app**.
+- **Computer (Chrome or Edge):** click **Install** in the app's header.
+
+## Calendar and reminders
+
+Open **Internships → Calendar**.
+
+- **Add to Google Calendar:** each posting with a deadline has its own link. No sign-in needed.
+- **Download deadlines (.ics):** one file with every deadline, for Google, Apple, or Outlook calendars.
+- **Sync to Google Calendar:** adds and updates every deadline in your Google Calendar, with phone reminders three days and one day before. This needs the one-time setup below.
+- **Deadline alerts:** a notification when you open the app and something is due within three days.
+  A static site can't send notifications while it's closed, so calendar reminders cover that.
+
+### Google Calendar sync setup (one time, free)
+
+1. In the [Google Cloud console](https://console.cloud.google.com/), create a project.
+2. Under **APIs & Services → Library**, enable the **Google Calendar API**.
+3. Under **OAuth consent screen**, choose **External**, fill in the app name and your email, and add the `.../auth/calendar.events` scope.
+   Leave it in **Testing** and add each person who will use sync (by Gmail address) under **Test users**.
+4. Under **Credentials → Create credentials → OAuth client ID**, choose **Web application** and add `https://kvnchng03.github.io` as an **Authorized JavaScript origin** (and `http://localhost:5173` for local testing).
+5. Copy the client ID. In this repo on GitHub, go to **Settings → Secrets and variables → Actions → Variables** and add `GOOGLE_CLIENT_ID`.
+6. Re-run the **Deploy** workflow. The **Sync to Google Calendar** button appears.
+
+The client ID is public by design; it only identifies the app to Google.
+
 ## Development
 
 The app is TypeScript, built with Vite.

@@ -3,6 +3,8 @@ import type { Kid, Posting, SkillHit, Status } from "../types";
 import { CATEGORY, CAT_KEY, LINKS, SKILL_BY_ID } from "../data/skills";
 import { STATUSES, STATUS_KEY, STATUS_LABEL } from "../data/statuses";
 import { boardOrder, dueInfo, jobType, matchOf, setStatus, skillTally, togglePriority, type Due, type Tally } from "../lib/postings";
+import { deadlineEvents, googleCalendarUrl } from "../lib/calendar";
+import { openCalendar } from "./calendar-dialog";
 import { resumeAdvice, setLearning, shown, type HaveMap } from "../lib/skills";
 import { commit, state, ui } from "../lib/store";
 import { closeDialog, openPosting, openPostingForm } from "./dialogs";
@@ -47,14 +49,15 @@ export function postingsView(have: HaveMap): HTMLElement[] {
       h("span", null, h("b", { class: "mono" }, working), " working on"),
       h("span", { class: attention.some(p => dueInfo(p)?.level !== "soon") ? "hot" : "" }, h("b", { class: "mono" }, attention.length), " due soon")),
     h("span", { class: "spacer" }),
+    h("button", { type: "button", class: "btn sm", onclick: openCalendar, title: "Calendar, reminders, and alerts" }, icon("calendar"), h("span", { class: "lbl" }, "Calendar")),
     h("button", { type: "button", class: "btn primary sm", onclick: () => openPostingForm(null) }, icon("plus"), "Add a posting"));
   if (!posts.length) {
-    return [bar, h("main", { class: "pane center", style: "flex:1" }, scroller("board-empty", h("div", { class: "empty-state" },
+    return [bar, h("main", { class: "pane center solo", style: "flex:1" }, scroller("board-empty", h("div", { class: "empty-state" },
       icon("briefcase", "lg"), h("h3", null, "No postings yet"),
       h("p", null, "Find internships on Handshake, LinkedIn, or firm careers pages, then add them here to track them."),
       h("button", { class: "btn primary", type: "button", onclick: () => openPostingForm(null) }, icon("plus"), "Add a posting"))))];
   }
-  if (ui.postTab === "results") return [bar, h("main", { class: "pane center", style: "flex:1" }, ...resultsView(have))];
+  if (ui.postTab === "results") return [bar, h("main", { class: "pane center solo", style: "flex:1" }, ...resultsView(have))];
   const strip = attention.length ? h("div", { class: "attn" },
     h("span", { class: "attn-h" }, icon("alert", "sm"), "Needs attention"),
     ...attention.map(p => { const d = dueInfo(p) as Due; return h("button", { type: "button", class: "attn-item lvl-" + d.level, onclick: () => openPosting(p.id) },
@@ -78,7 +81,7 @@ export function postingsView(have: HaveMap): HTMLElement[] {
       h("header", { class: "kcol-head" }, h("i", { class: "sdot" }), h("span", null, STATUS_LABEL[st]), h("span", { class: "n mono" }, list.length)),
       h("div", { class: "kcol-body" }, ...(list.length ? list.map(p => boardCard(p, have)) : [h("p", { class: "kempty" }, "Drag a card here")])));
   });
-  return [bar, h("main", { class: "pane center", style: "flex:1" }, scroller("kanban", strip, h("div", { class: "kanban" }, ...cols)))];
+  return [bar, h("main", { class: "pane center solo", style: "flex:1" }, scroller("kanban", strip, h("div", { class: "kanban" }, ...cols)))];
 }
 
 function boardCard(p: Posting, have: HaveMap): HTMLElement {
@@ -115,7 +118,8 @@ export function postingCard(p: Posting, have: HaveMap): HTMLElement {
       p.role ? h("p", { class: "muted", style: "font-size:13px" }, p.role) : null,
       h("div", { class: "chips", style: "margin-top:4px" },
         due ? h("span", { class: "due lvl-" + (due.level || "none") }, due.text) : null,
-        p.link ? h("a", { class: "badge", href: p.link, target: "_blank", rel: "noopener", style: "text-decoration:none" }, "Open posting", icon("external", "sm")) : null)),
+        p.link ? h("a", { class: "badge", href: p.link, target: "_blank", rel: "noopener", style: "text-decoration:none" }, "Open posting", icon("external", "sm")) : null,
+        ...deadlineEvents([p]).map(e => h("a", { class: "badge", href: googleCalendarUrl(e), target: "_blank", rel: "noopener", style: "text-decoration:none" }, icon("calendar", "sm"), "Add to Google Calendar")))),
     h("button", { type: "button", class: "star" + (p.priority ? " on" : ""), "aria-pressed": String(p.priority), title: p.priority ? "Remove priority" : "Mark as priority", onclick: () => togglePriority(p) }, icon("star")),
     h("select", { class: "input", id: "status-" + p.id, style: "width:auto;height:28px;font-size:12px", "aria-label": "Status",
       onchange: (e: Event) => setStatus(p, (e.target as HTMLSelectElement).value as Status) }, ...STATUSES.map(s => h("option", { value: s, selected: s === p.status }, STATUS_LABEL[s]))),

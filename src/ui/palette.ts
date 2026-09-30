@@ -11,6 +11,7 @@ import { fillIn } from "./plan-view";
 import { VIEWS, render } from "./render";
 import { openSkill } from "./skills-view";
 import { copyPlan } from "./summary-view";
+import { openCalendar } from "./calendar-dialog";
 
 interface Command { label: string; hint: string; run: () => void }
 
@@ -22,6 +23,7 @@ export function openPalette(): void {
     { label: "Add a posting", hint: "Action", run: () => openPostingForm(null) },
     { label: "Add a term", hint: "Action", run: () => { addTerm(); ui.view = "plan"; commit(); } },
     { label: "Copy plan for my advisor", hint: "Action", run: copyPlan },
+    { label: "Deadlines & reminders (calendar, alerts, install)", hint: "Action", run: openCalendar },
     { label: "Back up my data", hint: "Action", run: backup },
     { label: "Restore from a backup", hint: "Action", run: restore },
     ...VIEWS.map(v => ({ label: "Go to " + v.label, hint: "View", run: go(v.id) })),

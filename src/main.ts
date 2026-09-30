@@ -5,6 +5,9 @@ import { closeDialog, dlg } from "./ui/dialogs";
 import { byId, toast } from "./ui/dom";
 import { openPalette } from "./ui/palette";
 import { render } from "./ui/render";
+import { registerSW } from "virtual:pwa-register";
+import { checkDeadlines } from "./ui/alerts";
+import { watchInstall } from "./ui/install";
 
 dlg().addEventListener("close", () => { ui.dialog = null; dlg().classList.remove("palette"); });
 dlg().addEventListener("click", e => { if (e.target === dlg()) closeDialog(); });
@@ -22,3 +25,10 @@ byId("startOwn").addEventListener("click", () => {
 setRenderer(render);
 render();
 setSave(state.example ? "example" : "local");
+
+// Works offline and updates itself in the background
+registerSW({ immediate: true });
+watchInstall(render);
+// Alert about urgent deadlines when the app opens or comes back to the front
+void checkDeadlines();
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void checkDeadlines(); });
