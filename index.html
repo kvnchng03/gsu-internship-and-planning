@@ -1,0 +1,2260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Plan Georgia State accounting classes, track internship applications, and see which skills to learn next.">
+<title>Internship Ledger</title>
+<style>
+/* Light only. Neutral surfaces, GSU blue for actions and planned work, one color per
+   requirement group, green/blue/amber/gray for skill status, red only when a rule is broken. */
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --popover: oklch(1 0 0);
+  --primary: oklch(0.42 0.19 263);
+  --primary-foreground: oklch(0.985 0 0);
+  --primary-soft: oklch(0.42 0.19 263 / 0.1);
+  --secondary: oklch(0.97 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.955 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-soft: oklch(0.577 0.245 27.325 / 0.08);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --board: oklch(0.948 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --shadow: 0 1px 2px oklch(0 0 0 / 0.06), 0 1px 3px oklch(0 0 0 / 0.04);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  /* Requirement groups: one color each, used everywhere the group appears */
+  --g-lower: oklch(0.52 0.04 255);
+  --g-foundation: oklch(0.56 0.11 185);
+  --g-core: oklch(0.52 0.18 300);
+  --g-major: oklch(0.42 0.19 263);
+  --g-senior: oklch(0.62 0.16 55);
+  /* Skill status: green have, blue studying, amber partly, gray not yet */
+  --ok: oklch(0.55 0.14 150);
+  --ok-soft: oklch(0.55 0.14 150 / 0.12);
+  --warn: oklch(0.62 0.14 70);
+  --warn-soft: oklch(0.72 0.14 80 / 0.18);
+  /* Skill categories */
+  --c-acct: oklch(0.5 0.16 263);
+  --c-soft: oklch(0.52 0.11 190);
+  --c-people: oklch(0.56 0.17 5);
+  /* Application status */
+  --st-todo: oklch(0.55 0.03 255);
+  --st-wip: oklch(0.5 0.19 263);
+  --st-applied: oklch(0.52 0.18 300);
+  --st-interview: oklch(0.63 0.16 55);
+  --st-offer: oklch(0.55 0.14 150);
+  --st-closed: oklch(0.68 0 0);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--background); color: var(--foreground);
+  font-family: var(--font-sans); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+a { color: inherit; }
+h1, h2, h3, h4, p { margin: 0; }
+:focus-visible { outline: 2px solid color-mix(in srgb, var(--primary) 60%, transparent); outline-offset: 1px; border-radius: 4px; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.muted { color: var(--muted-foreground); }
+.ico { width: 14px; height: 14px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ico.sm { width: 12px; height: 12px; }
+.ico.lg { width: 16px; height: 16px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* App shell */
+.app { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.topbar { height: 48px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--border); background: var(--background); }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; letter-spacing: -0.01em; white-space: nowrap; }
+.brand .ico { color: var(--primary); width: 18px; height: 18px; }
+.vsep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; flex: none; }
+.spacer { flex: 1; }
+.seg { display: inline-flex; padding: 2px; gap: 2px; border-radius: 8px; background: var(--muted); }
+.seg button { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; }
+.seg button:hover { color: var(--foreground); }
+.seg button[aria-pressed="true"] { background: var(--primary); color: var(--primary-foreground); }
+.sync { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted-foreground); white-space: nowrap; }
+.sync::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--muted-foreground); }
+.sync[data-state="account"]::before { background: var(--primary); }
+.sync[data-state="error"]::before { background: var(--destructive); }
+.banner { flex: none; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 6px 12px; font-size: 12px; background: var(--muted); border-bottom: 1px solid var(--border); flex-wrap: wrap; text-align: center; }
+
+.rail { flex: none; display: flex; align-items: center; gap: 24px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.rail-groups { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.grp-lower { --g: var(--g-lower); }
+.grp-foundation { --g: var(--g-foundation); }
+.grp-core { --g: var(--g-core); }
+.grp-major { --g: var(--g-major); }
+.grp-senior { --g: var(--g-senior); }
+.grp-elective { --g: var(--muted-foreground); }
+.gdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--g, var(--muted-foreground)); flex: none; }
+.rg { display: grid; gap: 6px; text-align: left; min-width: 0; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--g) 7%, transparent); border: 1px solid color-mix(in srgb, var(--g) 22%, transparent); }
+.rg:hover { background: color-mix(in srgb, var(--g) 12%, transparent); }
+.rg .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--g); white-space: nowrap; }
+.rg .top .gl { display: inline-flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.rg .top .mono { color: var(--foreground); font-size: 12.5px; }
+.rg .bar { display: flex; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--g) 12%, var(--background)); overflow: hidden; }
+.rg .bar span { display: block; height: 100%; }
+.rg .bar .d { background: var(--g); }
+.rg .bar .p { background: color-mix(in srgb, var(--g) 40%, transparent); }
+.rg .bar .b { background: var(--destructive); }
+.rail-stats { flex: none; display: flex; align-items: center; gap: 14px; white-space: nowrap; font-size: 12px; color: var(--muted-foreground); }
+.rail-stats b { font-weight: 600; color: var(--foreground); }
+@media (max-width: 900px) {
+  .rail { flex-wrap: wrap; gap: 8px 16px; }
+  .rail-groups { flex-basis: 100%; grid-template-columns: repeat(5, minmax(56px, 1fr)); gap: 10px; }
+  .rg .top > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+}
+
+.panes { flex: 1; min-height: 0; display: grid; grid-template-columns: 300px minmax(0, 1fr) 320px; }
+.pane { min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.pane.side { background: var(--sidebar); }
+.pane.left { border-right: 1px solid var(--border); }
+.pane.right { border-left: 1px solid var(--border); }
+.pane.center { background: var(--board); }
+.scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.pane-head { flex: none; display: grid; gap: 8px; padding: 12px; border-bottom: 1px solid var(--border); }
+.pane-foot { flex: none; padding: 6px 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted-foreground); }
+.mobile-tabs { display: none; }
+
+/* Controls */
+.input, select.input, textarea.input {
+  width: 100%; height: 32px; padding: 0 10px; border: 1px solid var(--input); border-radius: 8px; background: var(--background); font-size: 13px; box-shadow: var(--shadow);
+}
+textarea.input { height: auto; min-height: 140px; padding: 8px 10px; resize: vertical; line-height: 1.45; }
+.input:focus { outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent); outline-offset: 0; }
+.search { position: relative; }
+.search .ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted-foreground); }
+.search .input { padding-left: 30px; }
+.toggles { display: flex; flex-wrap: wrap; gap: 4px; }
+.toggle { height: 26px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); border: 1px solid transparent; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.toggle:hover { background: var(--accent); color: var(--foreground); }
+.toggle[aria-pressed="true"] { background: var(--accent); color: var(--foreground); border-color: var(--border); }
+.toggle .n { font-family: var(--font-mono); font-size: 11px; opacity: 0.7; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; font-size: 13px; font-weight: 500; white-space: nowrap; border: 1px solid var(--border); background: var(--background); box-shadow: var(--shadow); }
+.btn:hover { background: var(--accent); }
+.btn.sm { height: 28px; padding: 0 10px; font-size: 12px; }
+.btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+.btn.primary:hover { filter: brightness(1.1); }
+.btn.ghost { border-color: transparent; background: transparent; box-shadow: none; color: var(--muted-foreground); }
+.btn.ghost:hover { background: var(--accent); color: var(--foreground); }
+.btn.dashed { border-style: dashed; background: transparent; box-shadow: none; color: var(--muted-foreground); width: 100%; }
+.btn.dashed:hover { color: var(--foreground); background: var(--card); }
+.btn.danger { color: var(--destructive); }
+.btn.danger.armed { background: var(--destructive); border-color: var(--destructive); color: var(--background); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.icon-btn { width: 24px; height: 24px; display: inline-grid; place-items: center; border-radius: 6px; color: var(--muted-foreground); flex: none; }
+.icon-btn:hover { background: var(--accent); color: var(--foreground); }
+.badge { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 6px; border-radius: 6px; font-size: 11px; font-weight: 500; border: 1px solid var(--border); color: var(--muted-foreground); white-space: nowrap; }
+.badge.mono { font-size: 10.5px; }
+.badge.primary { border-color: transparent; background: var(--primary-soft); color: var(--primary); }
+.badge.ok { border-color: transparent; background: var(--ok-soft); color: var(--ok); }
+.badge.ok-solid { border-color: transparent; background: var(--ok); color: #fff; }
+.badge.warn { border-color: transparent; background: var(--warn-soft); color: var(--warn); }
+.badge.grp { border-color: transparent; background: color-mix(in srgb, var(--g) 13%, transparent); color: var(--g); }
+.badge.solid { border-color: transparent; background: var(--primary); color: var(--primary-foreground); }
+.badge.bad { border-color: transparent; background: var(--destructive-soft); color: var(--destructive); }
+.kicker { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); }
+.group-label { padding: 4px 12px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); background: color-mix(in srgb, var(--muted) 60%, transparent); }
+.group-label[class*="grp-"] { display: flex; align-items: center; gap: 7px; padding: 6px 12px; font-size: 11px; color: var(--g); background: color-mix(in srgb, var(--g) 8%, var(--sidebar)); border-left: 3px solid var(--g); }
+
+/* Library rows */
+.lib-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; padding: 8px 12px; border-left: 3px solid transparent; border-bottom: 1px solid var(--border); cursor: pointer; }
+.lib-row:hover { background: var(--accent); }
+.lib-row.on { border-left-color: var(--g, var(--primary)); }
+.lib-row .l1 { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.lib-row .code { font-family: var(--font-mono); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.lib-row .title { font-size: 12px; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.lib-row .l2 { grid-column: 1; display: flex; gap: 10px; font-size: 11px; color: var(--muted-foreground); }
+.lib-row .end { grid-row: 1 / span 2; grid-column: 2; }
+
+/* Board */
+.board { padding: 16px 16px 40px; display: grid; gap: 22px; container-type: inline-size; }
+.year { display: grid; gap: 8px; }
+.year-label { display: flex; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.05em; color: var(--muted-foreground); }
+.year-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.terms { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: start; }
+@container (min-width: 560px) { .terms { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (min-width: 900px) { .terms { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.term { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; cursor: default; transition: box-shadow 0.15s, border-color 0.15s; }
+.term:hover { box-shadow: 0 4px 12px oklch(0 0 0 / 0.08); }
+.term.focus { border-color: color-mix(in srgb, var(--primary) 60%, transparent); box-shadow: 0 0 0 3px var(--primary-soft); }
+.term.over { border-color: var(--destructive); }
+.term.drop { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.lib-row[draggable="true"], .slot { cursor: grab; }
+body.dragging .empty-slot { border-color: color-mix(in srgb, var(--primary) 60%, transparent); color: var(--primary); }
+.kbd { font-family: var(--font-mono); font-size: 10.5px; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted-foreground); background: var(--background); }
+dialog.dlg.palette { margin-top: 12vh; width: min(600px, calc(100% - 32px)); }
+.pal-search { padding: 10px; border-bottom: 1px solid var(--border); }
+.pal-list { max-height: min(52vh, 460px); overflow-y: auto; padding: 6px; display: grid; gap: 1px; }
+.pal-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; text-align: left; font-size: 13px; width: 100%; }
+.pal-item[aria-selected="true"] { background: var(--accent); }
+.pal-item .pal-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pal-item .pal-hint { font-size: 11px; color: var(--muted-foreground); }
+.summary { max-width: 780px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 14px; }
+.summary-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.summary-head h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+.sum-row { display: grid; grid-template-columns: 170px 1fr auto; gap: 4px 12px; padding: 8px 16px; border-top: 1px solid var(--border); font-size: 13px; align-items: baseline; }
+.sum-row:first-child { border-top: 0; }
+.sum-row .k { font-weight: 500; }
+.sum-row .v { color: var(--muted-foreground); min-width: 0; }
+.sum-row .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted-foreground); }
+.sum-term { padding: 10px 16px; border-top: 1px solid var(--border); display: grid; gap: 4px; }
+.sum-term:first-child { border-top: 0; }
+.sum-term .hd { display: flex; justify-content: space-between; font-weight: 600; font-size: 13.5px; }
+.sum-term .ln { display: grid; grid-template-columns: 84px 1fr auto; gap: 8px; font-size: 13px; }
+.sum-term .ln .mono { font-weight: 600; font-size: 12px; }
+@media (max-width: 560px) { .sum-row { grid-template-columns: 1fr auto; } .sum-row .v { grid-column: 1 / -1; } }
+.term-head { display: flex; align-items: center; gap: 8px; padding: 12px 14px 8px; }
+.term-head h3 { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.term-meta { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted-foreground); white-space: nowrap; }
+.term-meta.over { color: var(--destructive); font-weight: 600; }
+.term-body { border-top: 1px solid var(--border); padding: 10px; display: grid; gap: 6px; }
+.slot { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid transparent; border-left: 3px solid var(--border); background: color-mix(in srgb, var(--secondary) 60%, transparent); cursor: pointer; min-width: 0; }
+.slot:hover { background: var(--accent); border-color: var(--border); }
+.slot.req { border-left-color: var(--g, var(--primary)); }
+.slot.bad { border-left-color: var(--destructive); background: var(--destructive-soft); }
+.slot .code { font-family: var(--font-mono); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.slot .title { flex: 1; min-width: 0; font-size: 13px; color: color-mix(in srgb, var(--foreground) 75%, transparent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slot .warn { color: var(--destructive); display: inline-flex; }
+.slot .rm { opacity: 0; }
+.slot:hover .rm, .slot .rm:focus-visible { opacity: 1; }
+.empty-slot { border: 1px dashed var(--border); border-radius: 8px; padding: 14px 8px; text-align: center; font-size: 12px; color: var(--muted-foreground); }
+
+/* Checklist */
+.verdict { padding: 14px 12px; border-bottom: 1px solid var(--border); display: grid; gap: 2px; }
+.verdict .headline { font-size: 16px; font-weight: 500; line-height: 1.3; }
+.verdict .headline.ok { color: var(--primary); }
+.verdict .headline.bad { color: var(--destructive); }
+.verdict .detail { font-size: 12px; color: var(--muted-foreground); }
+.checks { padding: 8px; display: grid; gap: 1px; }
+.check { border-radius: 6px; }
+.check > summary { list-style: none; display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.check > summary::-webkit-details-marker { display: none; }
+.check > summary:hover { background: var(--accent); }
+.check > summary .lbl { flex: 1; min-width: 0; }
+.check > summary .n { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+.check .i-ok { color: var(--ok); }
+.check .i-bad { color: var(--destructive); }
+.check .i-open { color: color-mix(in srgb, var(--muted-foreground) 70%, transparent); }
+.check-body { padding: 2px 8px 8px 30px; display: grid; gap: 4px; font-size: 12px; color: var(--muted-foreground); }
+.check-body button { text-align: left; }
+.check-body button:hover { color: var(--foreground); text-decoration: underline; text-underline-offset: 2px; }
+.side-block { padding: 12px; border-top: 1px solid var(--border); display: grid; gap: 8px; }
+.note { font-size: 11px; line-height: 1.5; color: var(--muted-foreground); }
+.alert { font-size: 12px; line-height: 1.45; border-radius: 6px; padding: 6px 8px; background: var(--destructive-soft); color: var(--destructive); }
+.hint { font-size: 12px; line-height: 1.45; border-radius: 6px; padding: 6px 8px; background: var(--primary-soft); color: var(--primary); }
+
+/* Postings */
+.post-detail { padding: 16px; display: grid; gap: 12px; max-width: 820px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+.card-head { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; }
+.card-head .t { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.card-head h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.card-sec { border-top: 1px solid var(--border); padding: 12px 16px; display: grid; gap: 8px; }
+.meter { display: flex; align-items: center; gap: 12px; }
+.meter .big { font-family: var(--font-mono); font-size: 20px; font-weight: 600; }
+.ticks { display: flex; flex-wrap: wrap; gap: 3px; }
+.tick { width: 14px; height: 8px; border-radius: 2px; border: 1px solid var(--border); }
+.tick.yes { background: var(--ok); border-color: var(--ok); }
+.tick.learning { background: var(--primary); border-color: var(--primary); }
+.tick.partly { background: var(--warn); border-color: var(--warn); }
+.st-todo { --s: var(--st-todo); } .st-wip { --s: var(--st-wip); } .st-applied { --s: var(--st-applied); }
+.st-interview { --s: var(--st-interview); } .st-offer { --s: var(--st-offer); } .st-closed { --s: var(--st-closed); }
+.ptop { flex: none; display: flex; align-items: center; gap: 16px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.pstats { display: flex; gap: 14px; font-size: 12px; color: var(--muted-foreground); }
+.pstats b { color: var(--foreground); font-weight: 600; }
+.pstats .hot, .pstats .hot b { color: var(--destructive); }
+.attn { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 12px 16px 0; }
+.attn-h { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--destructive); }
+.attn-item { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 999px; font-size: 12px; border: 1px solid; }
+.attn-item.lvl-overdue, .attn-item.lvl-urgent { color: var(--destructive); border-color: color-mix(in srgb, var(--destructive) 40%, transparent); background: var(--destructive-soft); }
+.attn-item.lvl-soon { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); background: var(--warn-soft); }
+.kanban { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr); gap: 12px; padding: 12px 16px 24px; overflow-x: auto; align-items: start; }
+.kcol { border-radius: 12px; background: color-mix(in srgb, var(--s) 7%, var(--board)); border: 1px solid color-mix(in srgb, var(--s) 22%, transparent); display: flex; flex-direction: column; min-width: 0; }
+.kcol.drop { outline: 2px solid var(--s); outline-offset: 1px; }
+.kcol-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: var(--s); }
+.kcol-head .n { margin-left: auto; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, var(--s) 15%, transparent); }
+.sdot { width: 9px; height: 9px; border-radius: 50%; background: var(--s); flex: none; display: inline-block; }
+.kcol-body { padding: 0 8px 10px; display: grid; gap: 8px; }
+.kempty { font-size: 12px; color: var(--muted-foreground); text-align: center; padding: 14px 6px; border: 1px dashed color-mix(in srgb, var(--s) 30%, transparent); border-radius: 8px; }
+.kcard { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--s); border-radius: 10px; padding: 10px 10px 10px 12px; display: grid; gap: 4px; box-shadow: var(--shadow); cursor: grab; text-align: left; }
+.kcard:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+.kcard.lvl-overdue, .kcard.lvl-urgent { box-shadow: 0 0 0 2px color-mix(in srgb, var(--destructive) 55%, transparent); }
+.kcard.st-closed { opacity: 0.7; }
+.kcard .k1 { display: flex; align-items: flex-start; gap: 6px; }
+.kcard .co { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.kcard .ro { font-size: 12px; color: var(--muted-foreground); line-height: 1.35; }
+.kcard .k3 { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px; }
+.kcard .match { font-size: 11.5px; color: var(--muted-foreground); }
+.due { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 11px; padding: 2px 7px; border-radius: 6px; white-space: nowrap; background: var(--muted); color: var(--muted-foreground); }
+.due.lvl-overdue, .due.lvl-urgent { background: var(--destructive-soft); color: var(--destructive); font-weight: 600; }
+.due.lvl-soon { background: var(--warn-soft); color: var(--warn); font-weight: 600; }
+.star { width: 24px; height: 24px; display: inline-grid; place-items: center; border-radius: 6px; color: var(--muted-foreground); flex: none; }
+.star:hover { background: var(--accent); }
+.star.on { color: oklch(0.72 0.16 80); }
+.star.on .ico { fill: currentColor; }
+dialog.dlg.wide { width: min(760px, calc(100% - 32px)); }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tile { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); padding: 12px 14px; display: grid; gap: 2px; }
+.tile .tv { font-size: 22px; font-weight: 600; }
+@media (max-width: 560px) { .tiles { grid-template-columns: 1fr; } }
+.next-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.next-row .rank { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600; background: var(--primary-soft); color: var(--primary); flex: none; }
+.next-row .nm { font-weight: 600; font-size: 14px; text-align: left; }
+.next-row .nm:hover { text-decoration: underline; text-underline-offset: 2px; }
+.freq-row { display: grid; grid-template-columns: auto minmax(120px, 1.4fr) auto minmax(60px, 1fr) 40px 64px; gap: 10px; align-items: center; padding: 6px 4px; border-radius: 6px; font-size: 13px; text-align: left; width: 100%; }
+.freq-row:hover { background: var(--accent); }
+.freq-row .fbar { height: 8px; border-radius: 4px; background: var(--muted); overflow: hidden; display: block; }
+.freq-row .fbar span { display: block; height: 100%; background: currentColor; }
+.freq-row .fbar .s-no { color: var(--muted-foreground); opacity: 0.55; }
+.freq-row .fn { font-size: 12px; color: var(--muted-foreground); text-align: right; }
+.freq-row .badge { justify-self: end; }
+@media (max-width: 700px) { .freq-row { grid-template-columns: auto 1fr 40px; } .freq-row .cat, .freq-row .fbar, .freq-row .badge { display: none; } }
+.rs-list { display: grid; gap: 6px; }
+.rs-h { font-size: 12px; font-weight: 600; }
+.rs-item { display: grid; gap: 6px; font-size: 13px; padding: 8px 10px; border-radius: 8px; background: var(--muted); border-left: 3px solid var(--ok); }
+.rs-item.warn { border-left-color: var(--warn); }
+.rs-item .q { color: var(--muted-foreground); font-size: 12.5px; }
+.skill-line { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px; font-size: 13px; text-align: left; width: 100%; }
+.skill-line:hover { background: var(--accent); }
+.skill-line .nm { flex: 1; min-width: 0; }
+.skill-line .st { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+.s-yes { color: var(--ok); }
+.s-learning { color: var(--primary); }
+.s-partly { color: var(--warn); }
+.s-no { color: color-mix(in srgb, var(--muted-foreground) 70%, transparent); }
+.s-bad { color: var(--destructive); }
+details.raw summary { cursor: pointer; font-size: 12px; color: var(--muted-foreground); }
+details.raw pre { white-space: pre-wrap; font-family: var(--font-sans); font-size: 12.5px; margin: 8px 0 0; max-height: 300px; overflow: auto; background: var(--muted); padding: 10px; border-radius: 8px; }
+.empty-state { display: grid; justify-items: center; gap: 10px; padding: 48px 16px; text-align: center; color: var(--muted-foreground); font-size: 13px; }
+.empty-state h3 { font-size: 15px; font-weight: 600; color: var(--foreground); }
+
+/* Skills */
+.tags { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; border: 1px solid var(--input); border-radius: 8px; background: var(--background); padding: 4px; box-shadow: var(--shadow); }
+.tags:focus-within { outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent); }
+.tags input { border: 0; background: transparent; flex: 1; min-width: 120px; height: 24px; padding: 0 6px; font-size: 13px; }
+.tags input:focus { outline: none; }
+.tag { display: inline-flex; align-items: center; gap: 2px; height: 22px; padding: 0 2px 0 8px; border-radius: 6px; background: var(--muted); font-size: 12px; }
+.tag button { width: 18px; height: 18px; display: grid; place-items: center; border-radius: 4px; color: var(--muted-foreground); }
+.tag button:hover { color: var(--destructive); }
+.suggest { display: flex; flex-wrap: wrap; gap: 4px; }
+.suggest button { height: 22px; padding: 0 8px; border: 1px dashed var(--border); border-radius: 6px; font-size: 11.5px; color: var(--muted-foreground); }
+.suggest button:hover { color: var(--foreground); border-color: var(--muted-foreground); }
+.side-sec { padding: 12px; display: grid; gap: 8px; border-bottom: 1px solid var(--border); }
+.side-sec h3 { font-size: 13px; font-weight: 600; }
+.field { display: grid; gap: 4px; font-size: 12px; font-weight: 500; }
+.field .muted { font-weight: 400; }
+.guide { padding: 16px; display: grid; gap: 20px; max-width: 860px; }
+.skill-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
+.skill-card + .skill-card { margin-top: 6px; }
+.skill-card > summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; }
+.skill-card > summary::-webkit-details-marker { display: none; }
+.skill-card > summary .nm { flex: 1; min-width: 0; font-weight: 500; font-size: 13.5px; }
+.skill-card { border-left: 3px solid transparent; }
+.skill-card.is-yes { border-left-color: var(--ok); }
+.skill-card.is-learning { border-left-color: var(--primary); }
+.skill-card.is-partly { border-left-color: var(--warn); }
+.skill-card.is-no > summary .nm { color: color-mix(in srgb, var(--foreground) 80%, transparent); }
+.status-head { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+.status-head::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.status-head .cnt { font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
+.status-head.st-yes { color: var(--ok); } .status-head.st-yes .cnt { background: var(--ok-soft); }
+.status-head.st-learning { color: var(--primary); } .status-head.st-learning .cnt { background: var(--primary-soft); }
+.status-head.st-partly { color: var(--warn); } .status-head.st-partly .cnt { background: var(--warn-soft); }
+.status-head.st-no { color: var(--muted-foreground); } .status-head.st-no .cnt { background: var(--muted); }
+.cat { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.cat-acct { color: var(--c-acct); background: color-mix(in srgb, var(--c-acct) 10%, transparent); }
+.cat-soft { color: var(--c-soft); background: color-mix(in srgb, var(--c-soft) 12%, transparent); }
+.cat-people { color: var(--c-people); background: color-mix(in srgb, var(--c-people) 10%, transparent); }
+@media (max-width: 560px) { .skill-card > summary .cat { display: none; } }
+.skill-card[open] > summary { border-bottom: 1px solid var(--border); }
+.skill-body { padding: 12px 12px 14px 36px; display: grid; gap: 12px; font-size: 13px; }
+.skill-body h4 { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 3px; }
+.skill-body ul { margin: 0; padding-left: 16px; display: grid; gap: 3px; }
+.links { display: flex; flex-wrap: wrap; gap: 6px; }
+.links a { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 9px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; font-weight: 500; text-decoration: none; color: var(--primary); background: var(--background); }
+.links a:hover { border-color: var(--primary); }
+.acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+/* Dialog */
+dialog.dlg { width: min(560px, calc(100% - 32px)); max-height: calc(100% - 48px); padding: 0; border: 1px solid var(--border); border-radius: 14px; background: var(--popover); color: var(--foreground); box-shadow: 0 20px 50px oklch(0 0 0 / 0.25); }
+dialog.dlg::backdrop { background: oklch(0 0 0 / 0.45); }
+.dlg-head { display: flex; align-items: flex-start; gap: 10px; padding: 16px 16px 12px; }
+.dlg-head .t { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.dlg-head h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
+.dlg-sec { padding: 12px 16px; border-top: 1px solid var(--border); display: grid; gap: 8px; font-size: 13px; }
+.dlg-foot { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+.req-list { display: grid; gap: 4px; }
+.req-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.req-item .mono { font-weight: 600; font-size: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 6px; font-size: 12px; background: var(--muted); }
+button.chip:hover { background: var(--accent); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); max-width: calc(100% - 32px); background: var(--popover); color: var(--foreground); border: 1px solid var(--border); box-shadow: 0 8px 24px oklch(0 0 0 / 0.18); padding: 10px 14px; border-radius: 10px; font-size: 13px; z-index: 10; }
+
+/* Phones: the three panes become tabs */
+@media (max-width: 900px) {
+  .panes { grid-template-columns: 1fr; }
+  .pane { display: none; border: 0 !important; }
+  .panes[data-show="left"] .pane.left, .panes[data-show="center"] .pane.center, .panes[data-show="right"] .pane.right { display: flex; }
+  .mobile-tabs { display: flex; flex: none; border-top: 1px solid var(--border); background: var(--background); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .mobile-tabs button { flex: 1; display: grid; justify-items: center; gap: 2px; padding: 8px 4px; font-size: 11px; color: var(--muted-foreground); }
+  .mobile-tabs button[aria-pressed="true"] { color: var(--primary); }
+  .brand .name { display: none; }
+  .seg button .lbl { display: none; }
+  .seg button[aria-pressed="true"] .lbl { display: inline; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand" id="brand"></div>
+    <span class="vsep"></span>
+    <div class="seg" id="views" role="group" aria-label="View"></div>
+    <span class="spacer"></span>
+    <span class="sync" id="saveState" data-state="loading">Loading…</span>
+  </header>
+  <div class="banner" id="exampleBanner" hidden>
+    <span>You're looking at <b>example data</b>. Nothing here is saved.</span>
+    <button class="btn sm primary" id="startOwn" type="button">Start my own</button>
+  </div>
+  <div id="view" class="app" style="flex:1;min-height:0"></div>
+</div>
+<dialog class="dlg" id="dlg"></dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Accounting skill dictionary ----------
+  const SKILLS = [
+    { id: "excel", name: "Excel", re: /\bexcel\b|spreadsheet/, tip: "Get comfortable with formulas, sorting and filtering. Many schools offer the Microsoft Office Specialist (MOS) Excel exam for free." },
+    { id: "excel-adv", name: "Pivot tables & lookups", re: /pivot|\bv-?lookup|\bx-?lookup|index[\/ -]match|macros?\b|power query/, tip: "Take a messy CSV, clean it up, and summarize it with a pivot table and XLOOKUP. Put that small project on your resume." },
+    { id: "gaap", name: "GAAP", re: /\bgaap\b|generally accepted accounting/, tip: "At GSU, ACCT 4101 and 4102 cover it. Once you're enrolled, list it on your resume as \"in progress\"." },
+    { id: "fin-statements", name: "Financial statements", re: /financial statements?|balance sheet|income statement|cash flow statement|financial reporting/, tip: "Pick a public company's 10-K and trace how its three statements connect. It makes good interview material." },
+    { id: "journal", name: "Journal entries & general ledger", re: /journal entr|general ledger|\bg\/l\b/, tip: "Practice adjusting and accrual entries (AccountingCoach.com has free drills)." },
+    { id: "recon", name: "Account reconciliations", re: /reconcil/, tip: "Do a practice bank reconciliation and a balance-sheet account reconciliation. Interns do these all the time." },
+    { id: "ap-ar", name: "Accounts payable / receivable", re: /accounts payable|accounts receivable|\ba\/[pr]\b|\bap\/ar\b/, tip: "A part-time bookkeeping or campus-office job usually covers AP/AR. Say so on your resume." },
+    { id: "month-end", name: "Month-end close", re: /month[- ]end|close process|period[- ]end|financial close/, tip: "Learn the steps of a close (accruals, reconciliations, review) well enough to explain them in an interview." },
+    { id: "audit", name: "Auditing", re: /\baudit/, tip: "ACCT 4610 covers it at GSU. Until then, the free Big 4 audit job simulations on Forage (theforage.com) are good resume lines." },
+    { id: "controls", name: "Internal controls / SOX", re: /internal controls?|\bsox\b|sarbanes/, tip: "ACCT 4610 and ACCT 4310 cover it at GSU. The Forage audit simulations touch on it too." },
+    { id: "tax", name: "Tax", re: /\btax/, tip: "ACCT 4510 covers individual tax at GSU. Volunteering with VITA, the IRS's free tax-prep program, also counts, and Tau Alpha Chi is GSU's tax student group." },
+    { id: "cost", name: "Cost & managerial accounting", re: /cost accounting|managerial accounting|cost analysis|inventory costing|standard cost/, tip: "ACCT 4210 covers it at GSU. Be ready to explain a cost or variance you worked out in that class." },
+    { id: "budget", name: "Budgeting & forecasting", re: /budget|forecast|variance analysis/, tip: "Build a simple 12-month budget-vs-actual in Excel for a club or a made-up business." },
+    { id: "quickbooks", name: "QuickBooks", re: /quickbooks|\bqbo\b/, tip: "Intuit's ProAdvisor program offers a free QuickBooks Online certification." },
+    { id: "erp", name: "ERP software (SAP, Oracle, NetSuite)", re: /\bsap\b|\boracle\b|netsuite|workday|\berp\b|dynamics 365|sage intacct/, tip: "Hard to learn on your own. ACCT 4310 may give you some exposure. On your resume, write \"exposure to\" rather than \"proficient\"." },
+    { id: "analytics", name: "Data analytics (Power BI, Tableau, Alteryx)", re: /data analytic|tableau|power ?bi\b|alteryx|\bsql\b|\bpython\b/, tip: "Follow a free Tableau Public or Power BI tutorial and build one dashboard. That's enough to talk about in an interview." },
+    { id: "office", name: "Microsoft Office", re: /microsoft office|ms office|office suite|powerpoint|outlook|microsoft 365/, tip: "Most students already have this. Just make sure it's on your resume." },
+    { id: "cpa", name: "On track for CPA (150 credit hours)", re: /\bcpa\b|150[- ](credit|semester|hour)/, tip: "Plan your 150 credit hours with your advisor, and be ready to explain how you'll reach them." },
+    { id: "communication", name: "Communication", re: /communicat|written and verbal|verbal and written|presentation skills/, tip: "Join Beta Alpha Psi or another GSU accounting group and take a role where you present or lead." },
+    { id: "detail", name: "Attention to detail", re: /detail[- ]oriented|attention to detail|high degree of accuracy/, tip: "Hard to prove with a bullet point. Give an example, like catching an error in a reconciliation." },
+    { id: "teamwork", name: "Teamwork", re: /teamwork|team player|collaborat|work(ing)? (well )?(in|with|on|as part of) (a )?team/, tip: "Group projects, a sports team or a club role all count. Name one in your resume or cover letter." },
+    { id: "analytical", name: "Analytical & problem solving", re: /analytical|problem[- ]solving|critical thinking/, tip: "Have a short story ready about a problem you broke down and solved with numbers." },
+    { id: "payroll", name: "Payroll", re: /payroll/, tip: "Payroll usually comes up in small-business or bookkeeping roles. QuickBooks training covers the basics." },
+  ];
+  const SKILL_BY_ID = Object.fromEntries(SKILLS.map(s => [s.id, s]));
+
+  // Plain-language guide: what each skill is, how to tell if you have it, how to learn it
+  const GUIDE_GROUPS = [
+    { name: "Accounting know-how", ids: ["journal", "fin-statements", "gaap", "recon", "ap-ar", "month-end", "cost", "budget", "tax", "audit", "controls", "cpa"] },
+    { name: "Software and tools", ids: ["excel", "excel-adv", "quickbooks", "erp", "analytics", "office", "payroll"] },
+    { name: "People skills", ids: ["communication", "detail", "teamwork", "analytical"] },
+  ];
+  const AC = "https://www.accountingcoach.com/";
+  const LINKS = {
+    journal: [["AccountingCoach: Debits and credits", AC + "debits-and-credits/explanation"], ["AccountingCoach: Adjusting entries", AC + "adjusting-entries/explanation"]],
+    "fin-statements": [["AccountingCoach: Financial statements", AC + "financial-statements/explanation"], ["Khan Academy: Accounting and financial statements", "https://www.khanacademy.org/economics-finance-domain/core-finance/accounting-and-financial-stateme"], ["SEC EDGAR: find any company's 10-K", "https://www.sec.gov/edgar/search/"]],
+    gaap: [["AccountingCoach: Accounting principles", AC + "accounting-principles/explanation"]],
+    recon: [["AccountingCoach: Bank reconciliation", AC + "bank-reconciliation/explanation"]],
+    "ap-ar": [["AccountingCoach: Accounts payable", AC + "accounts-payable/explanation"], ["AccountingCoach: Accounts receivable", AC + "accounts-receivable-and-bad-debts-expense/explanation"]],
+    "month-end": [["AccountingCoach: Adjusting entries", AC + "adjusting-entries/explanation"], ["AccountingCoach: Bank reconciliation", AC + "bank-reconciliation/explanation"]],
+    cost: [["AccountingCoach: Standard costing and variances", AC + "standard-costing/explanation"]],
+    budget: [["AccountingCoach: Standard costing and variances", AC + "standard-costing/explanation"], ["Microsoft: Excel training", "https://support.microsoft.com/en-us/excel"]],
+    tax: [["IRS: Volunteer with VITA", "https://www.irs.gov/individuals/irs-tax-volunteers"]],
+    audit: [["Forage: free Big 4 job simulations", "https://www.theforage.com/"]],
+    controls: [["Forage: free Big 4 job simulations", "https://www.theforage.com/"]],
+    cpa: [["AICPA: This Way to CPA", "https://www.thiswaytocpa.com/"], ["GSU School of Accountancy", "https://robinson.gsu.edu/academic-departments/accountancy/"]],
+    excel: [["GCFGlobal: Excel (free course)", "https://www.learnfree.org/series/excel-foundations"], ["Microsoft: Excel training", "https://support.microsoft.com/en-us/excel"]],
+    "excel-adv": [["Exceljet: Pivot tables", "https://exceljet.net/articles/excel-pivot-tables"], ["Exceljet: XLOOKUP", "https://exceljet.net/functions/xlookup-function"]],
+    quickbooks: [["Intuit: QuickBooks training and certification", "https://quickbooks.intuit.com/accountants/training-certification/"]],
+    erp: [["SAP Learning (free courses)", "https://learning.sap.com/"]],
+    analytics: [["Microsoft Learn: Power BI", "https://learn.microsoft.com/en-us/training/powerplatform/power-bi"], ["Power BI Desktop (free download)", "https://www.microsoft.com/en-us/power-platform/products/power-bi/desktop"], ["Tableau Public (free)", "https://public.tableau.com/"]],
+    office: [["GCFGlobal: Word", "https://www.learnfree.org/series/word-foundations"], ["GCFGlobal: PowerPoint", "https://www.learnfree.org/series/powerpoint-foundations"]],
+    payroll: [["AccountingCoach: Payroll accounting", AC + "payroll-accounting/explanation"], ["IRS: Publication 15 (Employer's Tax Guide)", "https://www.irs.gov/publications/p15"]],
+    analytical: [["SEC EDGAR: find a 10-K to practice on", "https://www.sec.gov/edgar/search/"]],
+  };
+  const GUIDE = {
+    journal: {
+      what: "Recording every transaction as debits and credits in the company's books (the general ledger). Everything else in accounting is built on this.",
+      check: "you can write the entries for a sale on credit, a prepaid expense, and an end-of-month accrual without looking them up.",
+      learn: ["ACCT 2101 at GSU covers the basics.", "AccountingCoach.com has free lessons and quizzes on debits, credits and adjusting entries.", "Practice: write the entries for one month of a made-up small business."],
+    },
+    "fin-statements": {
+      what: "The three main reports: the balance sheet (what a company owns and owes), the income statement (its profit), and the cash flow statement (where its cash came from and went).",
+      check: "you can explain how net income on the income statement flows into the balance sheet and the cash flow statement.",
+      learn: ["ACCT 2101, then ACCT 4101 at GSU.", "Khan Academy has free videos on reading financial statements.", "Read one real company's annual report (10-K), free on sec.gov."],
+    },
+    gaap: {
+      what: "Generally Accepted Accounting Principles: the US rulebook for how companies record and report things, like when a sale counts as revenue.",
+      check: "you can explain accrual accounting and the basic idea of revenue recognition, and why the rules exist.",
+      learn: ["ACCT 4101 and 4102 at GSU are where this is really taught.", "AccountingCoach.com explains the core principles for free.", "Until you've taken ACCT 4101, don't list GAAP as a skill. Say \"coursework in progress\" instead."],
+    },
+    recon: {
+      what: "Checking that two records agree, like the company's cash account and the bank statement, and explaining any difference.",
+      check: "you can do a bank reconciliation: list outstanding checks and deposits in transit until both sides match.",
+      learn: ["AccountingCoach.com has a free bank reconciliation lesson.", "Practice in Excel with a sample bank statement and checkbook.", "If your bookkeeping job included matching the books to the bank, you've done this. Put it on your resume."],
+    },
+    "ap-ar": {
+      what: "Accounts payable (AP) is paying the company's bills from vendors. Accounts receivable (AR) is collecting what customers owe.",
+      check: "you've entered, checked, or tracked vendor invoices or customer payments.",
+      learn: ["Usually learned on the job. Tracking and checking vendor invoices is AP work.", "Learn the \"three-way match\": purchase order, receiving report, and invoice must agree before paying.", "QuickBooks training covers both sides."],
+    },
+    "month-end": {
+      what: "The routine at the end of each month to finish the books: record accruals, reconcile accounts, review, then produce the financial statements.",
+      check: "you can list the steps of a close and say why each one matters.",
+      learn: ["Search \"month-end close checklist\" for real examples.", "Ask at work if you can shadow someone during a close.", "It builds on journal entries and reconciliations, so learn those first."],
+    },
+    cost: {
+      what: "Working out what it costs to make a product or finish a project (materials, labor, overhead) and using that for decisions. Job costing is one kind.",
+      check: "you can calculate a product's full cost including overhead, and explain why actual cost differed from the estimate.",
+      learn: ["ACCT 2102 introduces it and ACCT 4210 goes deeper at GSU.", "Tracking project materials, change orders, and costs at work is job-costing experience. Call it that on your resume."],
+    },
+    budget: {
+      what: "Planning future income and spending, then comparing what actually happened to the plan (variance analysis).",
+      check: "you can build a simple budget in Excel and explain why the actual numbers came out different.",
+      learn: ["Build a 12-month budget vs. actual sheet for a club or a made-up business.", "FI 3300 and ACCT 4210 at GSU touch on it."],
+    },
+    tax: {
+      what: "Preparing tax returns and planning around tax law, for people or businesses.",
+      check: "you can walk through the main parts of an individual Form 1040 and have helped prepare real returns.",
+      learn: ["ACCT 4510 at GSU covers individual tax.", "Volunteer with the IRS's VITA program: free training, a certification, and real returns.", "Tau Alpha Chi is GSU's tax student group."],
+    },
+    audit: {
+      what: "Independently checking that a company's financial statements are right by testing its records and evidence. Many Big 4 internships are in audit.",
+      check: "you can explain what materiality and audit risk mean, and what testing a sample of transactions looks like.",
+      learn: ["ACCT 4610 at GSU.", "Free Big 4 virtual job simulations on theforage.com let you try real audit tasks and add a line to your resume."],
+    },
+    controls: {
+      what: "The checks a company uses to prevent mistakes and fraud, like needing a second person to approve an invoice before it's paid. SOX is the law that makes public companies test theirs.",
+      check: "you can name a control and say what could go wrong without it.",
+      learn: ["ACCT 4610 and ACCT 4310 at GSU.", "Checking invoices with the accounting department before they're processed is a control. If you do that at work, you have real examples."],
+    },
+    cpa: {
+      what: "The Certified Public Accountant license. It takes education requirements, passing the four-part CPA exam, and work experience. Firms like to hear you're on track.",
+      check: "you know which path you'll take to meet Georgia's education and experience requirements.",
+      learn: ["Check the Georgia State Board of Accountancy's site. The rules have been changing, and some states now allow 120 credit hours plus extra work experience instead of 150 hours.", "Talk to a GSU School of Accountancy advisor about the Master of Professional Accountancy.", "The AICPA's thiswaytocpa.com explains the exam."],
+    },
+    excel: {
+      what: "Spreadsheets: formulas, sorting, filtering, formatting, and basic charts. Almost every accounting posting asks for it.",
+      check: "you can build a sheet with SUM and IF formulas, sort and filter data, and fix a formula that's giving the wrong answer.",
+      learn: ["GCFGlobal.org has a free Excel course from the basics up.", "Microsoft's own Excel training videos are free.", "Many schools offer the Microsoft Office Specialist (MOS) Excel exam for free."],
+    },
+    "excel-adv": {
+      what: "The Excel tools accountants use most: pivot tables to summarize lots of rows, and XLOOKUP or VLOOKUP to pull data from one sheet into another.",
+      check: "given 500 transactions, you can total them by vendor with a pivot table in a few minutes.",
+      learn: ["Exceljet.net has short free guides on pivot tables and XLOOKUP.", "Practice on real data, like a year of your own bank transactions.", "Once you can do it, write \"pivot tables, XLOOKUP\" on your resume, not just \"Excel.\""],
+    },
+    quickbooks: {
+      what: "The most common accounting software for small businesses: bills, invoices, payroll, and reports.",
+      check: "you've entered bills or invoices and run a report like a profit and loss in QuickBooks.",
+      learn: ["Intuit offers a free QuickBooks Online certification through its ProAdvisor program for accountants.", "If you used it at a job, that counts. Say what you did in it."],
+    },
+    erp: {
+      what: "The large systems big companies run on (SAP, Oracle, NetSuite, Workday). They connect accounting, purchasing and inventory.",
+      check: "you've used one at work or in a class.",
+      learn: ["SAP has free beginner courses at learning.sap.com.", "ACCT 4310 at GSU may give you some exposure.", "Nobody expects an intern to be an expert. \"Exposure to SAP\" is honest and enough."],
+    },
+    analytics: {
+      what: "Using tools like Power BI, Tableau or Alteryx to find patterns in data and show them in dashboards. Firms want this more every year.",
+      check: "you've built at least one dashboard from raw data.",
+      learn: ["Power BI Desktop is free, with free lessons on Microsoft Learn.", "Tableau Public is free too.", "One small project, like a dashboard of a company's 10-K numbers, is enough to talk about in an interview."],
+    },
+    office: {
+      what: "Word, PowerPoint and Outlook: clean documents, clear slides, and professional email.",
+      check: "you can format a professional document, put together a simple slide deck, and manage email and a calendar.",
+      learn: ["GCFGlobal.org has free courses on each one.", "Most students already have this. Just list it."],
+    },
+    payroll: {
+      what: "Paying employees correctly: hours, tips, taxes taken out of paychecks, and the payroll tax filings that follow.",
+      check: "you've run payroll or calculated what to withhold from a paycheck.",
+      learn: ["The help centers for QuickBooks, Square Payroll and Gusto explain each step for free.", "The IRS's Publication 15 (Employer's Tax Guide) is the official reference.", "If you've run payroll at a job, you have it. Say how many employees and how often."],
+    },
+    communication: {
+      what: "Writing clear emails, explaining numbers to people who aren't accountants, and presenting with confidence.",
+      check: "you can explain a financial result in two minutes to someone with no accounting background.",
+      learn: ["Class presentations count. So does emailing vendors and clients at work.", "Join Beta Alpha Psi or another GSU accounting group and take a role where you present or lead."],
+    },
+    detail: {
+      what: "Catching small errors: a swapped number, the wrong account, a duplicate invoice.",
+      check: "you have a real example of an error you caught before it caused a problem.",
+      learn: ["Every posting says it, so prove it with a story instead of just listing it.", "Checking invoices or orders before they go through is a great example."],
+    },
+    teamwork: {
+      what: "Working well with others on shared work. Audit and tax work is almost always done in teams.",
+      check: "you have an example of a group project or job where you worked closely with others.",
+      learn: ["Group projects, clubs and jobs all count.", "Prepare one short story: the situation, what you did, and how it turned out."],
+    },
+    analytical: {
+      what: "Breaking a problem down and using numbers to reach a conclusion.",
+      check: "you've analyzed data, like financial ratios, and explained what the results mean.",
+      learn: ["Practice explaining what ratios mean, not just calculating them.", "A class project like a 10-K ratio analysis is a strong example. Put it on your resume."],
+    },
+  };
+
+  // Georgia State 2026-2027 Undergraduate Catalog: the courses an accounting B.B.A. student plans around.
+  // pre: all must come first. any: one course from each list must come first. co: same term or earlier.
+  const CATALOG = "2026-2027 GSU Undergraduate Catalog";
+  const FOUNDATION = ["ACCT 2101", "ACCT 2102", "ECON 2105", "ECON 2106", "CIS 2010"];
+  const COURSES = [
+    { code: "ENGL 1101", title: "English Composition I", hrs: 3, req: "lower", partly: ["communication"] },
+    { code: "ENGL 1102", title: "English Composition II", hrs: 3, req: "lower", pre: ["ENGL 1101"], partly: ["communication"] },
+    { code: "MATH 1111", title: "College Algebra", hrs: 3, req: "lower", note: "Or a higher math course." },
+    { code: "MATH 1401", title: "Elementary Statistics", hrs: 3, req: "lower", note: "MATH 1070 counts too.", partly: ["analytical"] },
+    { code: "BUSA 1105", title: "Business, Value, and You", hrs: 3, req: "foundation" },
+    { code: "ECON 2105", title: "Principles of Macroeconomics", hrs: 3, req: "foundation", any: [["MATH 1111", "MATH 1001"]], partly: ["analytical"] },
+    { code: "ECON 2106", title: "Principles of Microeconomics", hrs: 3, req: "foundation", any: [["MATH 1111", "MATH 1001"]], partly: ["analytical"] },
+    { code: "ACCT 2101", title: "Principles of Accounting I", hrs: 3, req: "foundation", yes: ["journal", "fin-statements"] },
+    { code: "ACCT 2102", title: "Principles of Accounting II", hrs: 3, req: "foundation", pre: ["ACCT 2101"], partly: ["cost", "budget"] },
+    { code: "CIS 2010", title: "Introduction to Information Systems", hrs: 3, req: "foundation", partly: ["office", "analytics"] },
+    { code: "LGLS 3610", title: "Legal and Ethical Analysis of Business Environments", hrs: 3, req: "core" },
+    { code: "FI 3300", title: "Corporation Finance", hrs: 3, req: "core", pre: FOUNDATION, partly: ["budget", "analytical"] },
+    { code: "MGT 3100", title: "Business Analysis", hrs: 3, req: "core", pre: [...FOUNDATION, "MATH 1111"], yes: ["analytical"], partly: ["excel", "analytics"] },
+    { code: "MGT 3400", title: "Managing People in Organizations", hrs: 3, req: "core", partly: ["teamwork"] },
+    { code: "MK 3010", title: "Marketing Management", hrs: 3, req: "core", pre: FOUNDATION },
+    { code: "BCOM 3950", title: "Business Communication and Professional Development", hrs: 3, req: "core", pre: ["ENGL 1101", "ENGL 1102"], yes: ["communication"] },
+    { code: "ACCT 4101", title: "Essentials of Financial Reporting I", hrs: 3, req: "major", pre: ["ACCT 2101", "ACCT 2102"], yes: ["gaap", "fin-statements", "journal"] },
+    { code: "ACCT 4102", title: "Essentials of Financial Reporting II", hrs: 3, req: "major", pre: ["ACCT 4101", "BCOM 3950"], yes: ["gaap", "fin-statements"] },
+    { code: "ACCT 4210", title: "Cost / Managerial Accounting", hrs: 3, req: "major", pre: ["ACCT 2101", "ACCT 2102"], yes: ["cost", "budget"], partly: ["excel"] },
+    { code: "ACCT 4310", title: "Accounting Information Systems", hrs: 3, req: "major", pre: ["CIS 2010", "MGT 3100", "ACCT 4210"], yes: ["controls"], partly: ["analytics", "erp"] },
+    { code: "ACCT 4510", title: "Introduction to Federal Income Taxes", hrs: 3, req: "major", pre: ["ACCT 4101"], yes: ["tax"] },
+    { code: "ACCT 4610", title: "Introduction to Assurance Services", hrs: 3, req: "major", pre: ["ACCT 4102", "ACCT 4310"], yes: ["audit", "controls"] },
+    { code: "ACCT 4750", title: "Technology and Values in the Accounting Profession", hrs: 3, req: "major", pre: ["ACCT 4101", "ACCT 4102"], any: [["MATH 1401", "MATH 1070"]], partly: ["analytics"] },
+    { code: "BUSA 4000", title: "Global Business", hrs: 3, req: "senior", note: "Needs junior standing." },
+    { code: "BUSA 4980", title: "Strategic Management", hrs: 3, req: "senior", pre: ["BCOM 3950", "FI 3300", "MGT 3100", "MGT 3400", "LGLS 3610", "MK 3010", "BUSA 4000"], majorCount: 4, co: ["BUSA 4990"], last: true, partly: ["analytical"] },
+    { code: "BUSA 4990", title: "Comprehensive Exit Exam", hrs: 0, req: "senior", co: ["BUSA 4980"] },
+    { code: "ACCT 4100", title: "Accounting Professional Development I", hrs: 0, req: "elective", pre: ["ACCT 2101", "ACCT 2102"], co: ["ACCT 4101"], partly: ["communication"] },
+    { code: "ACCT 4391", title: "Field Study in Accounting", hrs: 3, req: "elective", note: "Needs instructor consent and a 3.0 GPA." },
+    { code: "ACCT 4520E", title: "Federal Income Taxes II", hrs: 3, req: "elective", pre: ["ACCT 4510"], yes: ["tax"] },
+    { code: "ACCT 4760", title: "Artificial Intelligence Applications for Accounting Profession", hrs: 3, req: "elective", partly: ["analytics"] },
+    { code: "ACCT 4810", title: "ESG Decisions and Disclosures of Business", hrs: 3, req: "elective" },
+    { code: "ACCT 4900E", title: "Accounting Professional Development II (CPA review)", hrs: 3, req: "elective", pre: ["ACCT 4102", "ACCT 4510"], yes: ["cpa"] },
+    { code: "ACCT 4411", title: "Financial Reporting Issues in the European Union", hrs: 3, req: "elective", pre: ["ACCT 2101", "ACCT 2102"] },
+  ];
+  const REQ_GROUPS = [
+    { id: "lower", name: "Lower-division requirements" },
+    { id: "foundation", name: "Business Foundation" },
+    { id: "core", name: "Junior Business Core" },
+    { id: "major", name: "Accounting major" },
+    { id: "senior", name: "Senior requirements" },
+    { id: "elective", name: "Accounting electives (optional)" },
+  ];
+  // Why a course matters for internships and planning
+  const WHY = {
+    "ACCT 4101": "The class recruiters look for first: it's where GAAP and financial reporting are taught, and it unlocks most of the major.",
+    "ACCT 4102": "Finishes financial reporting. It's required before auditing (ACCT 4610) and the capstone (ACCT 4750).",
+    "ACCT 4210": "Cost and managerial accounting. Most useful for corporate accounting roles, and required before ACCT 4310.",
+    "ACCT 4310": "Information systems and internal controls. Useful for risk and advisory internships, and required before ACCT 4610.",
+    "ACCT 4510": "Tax. The key class for tax internships and busy-season roles.",
+    "ACCT 4610": "Auditing. The most relevant class for audit internships, one of the most common internships at CPA firms.",
+    "ACCT 4750": "The accounting capstone, usually taken near the end.",
+    "ACCT 4100": "A zero-credit class taken alongside ACCT 4101 on networking, presenting, and accounting careers.",
+    "ACCT 4391": "Lets you earn course credit for an accounting internship. Talk to the School of Accountancy before you register.",
+    "ACCT 4520E": "More tax, for anyone leaning toward a tax career.",
+    "ACCT 4760": "AI tools in audit, tax, and reporting. Firms increasingly want these skills.",
+    "ACCT 4900E": "CPA exam review. Good in your last year if you plan to sit for the CPA.",
+    "BCOM 3950": "Required before ACCT 4102, so take it early.",
+    "MGT 3100": "Required before ACCT 4310.",
+    "BUSA 4980": "The business capstone. Take it in your final semester with BUSA 4990.",
+    "BUSA 4990": "The exit exam, taken the same semester as BUSA 4980.",
+  };
+  const COURSE_BY_CODE = Object.fromEntries(COURSES.map(c => [c.code, c]));
+  const ALIASES = { "MATH 1070": "MATH 1401" };
+  const REQUIRED = COURSES.filter(c => c.req !== "elective").map(c => c.code);
+  const MAJOR = COURSES.filter(c => c.req === "major").map(c => c.code);
+  const courseLabel = c => c.code + " " + c.title;
+  function codesIn(text) {
+    return [...String(text).matchAll(/\b([a-z]{2,4})\s?(\d{4}[a-z]?)\b/gi)].map(m => m[1].toUpperCase() + " " + m[2].toUpperCase());
+  }
+  function gsuCourseFor(text) {
+    for (const code of codesIn(text)) { const c = COURSE_BY_CODE[ALIASES[code] || code]; if (c) return c; }
+    return null;
+  }
+  // Longest chain of courses that wait on this one
+  const DEPTH = {};
+  const depthOf = code => {
+    if (DEPTH[code] !== undefined) return DEPTH[code];
+    DEPTH[code] = 0;
+    const next = COURSES.filter(d => d.req !== "elective" && ((d.pre || []).includes(code) || (d.any || []).some(a => a.includes(code))));
+    return (DEPTH[code] = next.length ? 1 + Math.max(...next.map(d => depthOf(d.code))) : 0);
+  };
+  COURSES.forEach(c => depthOf(c.code));
+  // Courses that must be finished before a final-semester course (the capstone)
+  const BEFORE_LAST = new Set(COURSES.filter(c => c.last).flatMap(c => c.pre || []));
+  // How many required courses can't start until this one is done
+  const UNLOCKS = {};
+  for (const c of COURSES) {
+    const seen = new Set(), stack = [c.code];
+    while (stack.length) {
+      const cur = stack.pop();
+      for (const d of COURSES) {
+        const needs = (d.pre || []).includes(cur) || (d.any || []).some(a => a.includes(cur));
+        if (needs && !seen.has(d.code)) { seen.add(d.code); stack.push(d.code); }
+      }
+    }
+    UNLOCKS[c.code] = [...seen].filter(x => REQUIRED.includes(x)).length;
+  }
+
+  // Other classes typed by hand -> skills they count toward
+  const CLASS_MAP = [
+    { re: /principles of (financial )?accounting|intro(duction)? to (financial )?accounting|financial accounting|accounting principles/, yes: ["journal", "fin-statements"] },
+    { re: /intermediate/, yes: ["gaap", "fin-statements", "journal", "recon"] },
+    { re: /advanced accounting/, yes: ["gaap", "fin-statements"] },
+    { re: /audit/, yes: ["audit", "controls"] },
+    { re: /\btax/, yes: ["tax"] },
+    { re: /cost accounting|managerial/, yes: ["cost", "budget"] },
+    { re: /information systems|\bais\b/, yes: ["controls"], partly: ["erp"] },
+    { re: /excel|spreadsheet|business computing|computer applications/, yes: ["excel", "office"] },
+    { re: /analytics|data/, yes: ["analytics"] },
+    { re: /business communication|business writing|public speaking/, yes: ["communication"] },
+    { re: /finance|financial management/, partly: ["budget"] },
+  ];
+
+  const STATUSES = ["Saved", "In progress", "Applied", "Interview", "Offer", "Rejected"];
+  const STATUS_LABEL = { Saved: "To apply", "In progress": "Working on", Applied: "Applied", Interview: "Interview", Offer: "Offer", Rejected: "Closed" };
+  const STATUS_KEY = { Saved: "todo", "In progress": "wip", Applied: "applied", Interview: "interview", Offer: "offer", Rejected: "closed" };
+  const OPEN_STATUSES = ["Saved", "In progress"];
+  const LS_KEY = "internship-ledger-v1";
+  const MAX_TEXT = 8000;
+
+
+  // ---------- State ----------
+  function emptyState() {
+    return { profile: { name: "", year: "Junior", grad: "", skills: [], classes: [], learning: [], resume: "" }, postings: [], plan: { terms: [] } };
+  }
+  // A new ledger starts with the skills from the owner's resume already filled in
+  function starterState() {
+    const s = emptyState();
+    return s;
+  }
+  function daysFromNow(n) {
+    const d = new Date(); d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+  function exampleState() {
+    return {
+      example: true,
+      plan: { terms: [] },
+      profile: {
+        name: "", year: "Junior", grad: "May 2028", learning: [], resume: "",
+        skills: ["Excel", "QuickBooks", "Communication"],
+        classes: ["ACCT 2101 Principles of Accounting I", "ACCT 2102 Principles of Accounting II", "CIS 2010 Introduction to Computer-Based Information Systems", "ACCT 4101 Essentials of Financial Reporting"],
+      },
+      postings: [
+        {
+          id: "ex1", company: "Mid-size CPA firm (example)", role: "Audit Intern, Summer 2027", link: "", deadline: daysFromNow(16), status: "Saved", createdAt: Date.now() - 3e8,
+          text: "Our audit interns join engagement teams serving private and public clients. You will help test internal controls, document audit procedures, and prepare workpapers under GAAP. Requirements: pursuing a degree in accounting with plans to meet the 150 credit hours needed for CPA licensure; proficiency in Excel; strong written and verbal communication; attention to detail; ability to work as part of a team.",
+        },
+        {
+          id: "ex2", company: "Manufacturing company (example)", role: "Corporate Accounting Intern", link: "", deadline: "", status: "Applied", createdAt: Date.now() - 2e8,
+          text: "Support the corporate accounting team with month-end close. Prepare journal entries and account reconciliations, assist accounts payable with invoice processing, and help analyze variances. Qualifications: junior or senior accounting major; intermediate Excel including pivot tables and VLOOKUP; experience with SAP a plus; detail-oriented with strong analytical skills.",
+        },
+        {
+          id: "ex3", company: "Local tax practice (example)", role: "Tax Season Intern (Jan-Apr 2027)", link: "", deadline: daysFromNow(33), status: "Saved", createdAt: Date.now() - 1e8,
+          text: "Join us for busy season. Prepare individual and small-business tax returns, organize client documents, and maintain books in QuickBooks. Looking for accounting students who have completed or are taking an individual tax course, are comfortable in Excel, communicate well with clients, and are interested in pursuing the CPA.",
+        },
+      ],
+    };
+  }
+  function normalize(raw) {
+    const s = emptyState();
+    if (!raw || typeof raw !== "object") return s;
+    const p = raw.profile || {};
+    s.profile = {
+      name: String(p.name || ""), year: String(p.year || "Junior"), grad: String(p.grad || ""),
+      skills: Array.isArray(p.skills) ? p.skills.map(String) : [],
+      learning: Array.isArray(p.learning) ? p.learning.map(String).filter(id => SKILL_BY_ID[id]) : [],
+      classes: Array.isArray(p.classes) ? p.classes.map(String) : [],
+      resume: String(p.resume || "").slice(0, 20000),
+    };
+    const placed = new Set();
+    const terms = raw.plan && Array.isArray(raw.plan.terms) ? raw.plan.terms : [];
+    s.plan = { terms: terms.filter(t => t && /^\d{4}-[123]$/.test(t.id)).map(t => ({
+      id: t.id,
+      codes: (Array.isArray(t.codes) ? t.codes : []).map(String).filter(c => COURSE_BY_CODE[c] && !placed.has(c) && placed.add(c)),
+    })).sort((a, b) => termIndex(a.id) - termIndex(b.id)) };
+    s.postings = Array.isArray(raw.postings) ? raw.postings.filter(x => x && x.id).map(x => ({
+      id: String(x.id), company: String(x.company || ""), role: String(x.role || ""), link: String(x.link || ""),
+      deadline: String(x.deadline || ""), status: STATUSES.includes(x.status) ? x.status : "Saved",
+      text: String(x.text || ""), createdAt: Number(x.createdAt) || Date.now(), priority: !!x.priority,
+    })) : [];
+    return s;
+  }
+  function loadLocal() {
+    try { const v = localStorage.getItem(LS_KEY); return v ? normalize(JSON.parse(v)) : null; } catch { return null; }
+  }
+
+  let state = loadLocal() || exampleState();
+  let ui = { armed: null, openSkills: new Set() };
+
+  // ---------- Storage ----------
+  let mode = "local";         // "account" | "local"
+  let docRef = null;
+  let saveTimer = null, writing = false, again = false;
+
+  function setSave(kind) {
+    const el = document.getElementById("saveState");
+    const text = {
+      loading: "Loading…",
+      example: "Example · not saved",
+      account: "Saved",
+      saving: "Saving…",
+      local: "Saved in this browser",
+      error: "Offline · saved in this browser",
+    }[kind];
+    el.dataset.state = kind;
+    el.textContent = text;
+  }
+  function persist() {
+    if (state.example) return;
+    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch {}
+    if (mode === "account") {
+      setSave("saving");
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(flush, 700);
+    } else {
+      setSave("local");
+    }
+  }
+  async function flush() {
+    if (!docRef) return;
+    if (writing) { again = true; return; }
+    writing = true;
+    try {
+      await docRef.set(JSON.parse(JSON.stringify(state)));
+      setSave("account");
+    } catch (e) {
+      if (e && (e.code === "invalid_argument" || e.code === "not_granted" || e.code === "revoked")) {
+        mode = "local"; docRef = null; setSave("local");
+      } else if (e && e.code === "quota_exceeded") {
+        setSave("error"); toast("Your account storage is full. Delete a few old postings.");
+      } else {
+        setSave("error");
+      }
+    } finally {
+      writing = false;
+      if (again) { again = false; flush(); }
+    }
+  }
+  async function initAccount() {
+    setSave(state.example ? "example" : "local");
+    if (!window.claude || typeof window.claude.use !== "function") return;
+    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if (!db || !user) return;
+    const id = await user.id();
+    if (!id) return;
+    try {
+      const ref = db.doc("data/users/" + id + "/tracker");
+      const snap = await ref.get();
+      docRef = ref; mode = "account";
+      if (snap.exists) {
+        state = normalize(snap.data());
+        render();
+        setSave("account");
+      } else if (!state.example) {
+        flush();
+      } else {
+        setSave("example");
+      }
+    } catch {
+      mode = "local";
+    }
+  }
+
+  // ---------- Mutations ----------
+  function ensureOwn() {
+    if (!state.example) return;
+    state = starterState();
+    document.getElementById("exampleBanner").hidden = true;
+    toast("Cleared the example. This plan is yours now.");
+  }
+  function commit() { persist(); render(); }
+
+  // ---------- Analysis ----------
+  function haveMap(profile) {
+    const have = {};
+    for (const raw of profile.skills) {
+      const t = raw.toLowerCase();
+      for (const s of SKILLS) if (s.re.test(t) || t === s.name.toLowerCase()) have[s.id] = "yes";
+    }
+    const cov = classCoverage(profile);
+    for (const [id, v] of Object.entries(cov)) if (!have[id] || v === "yes") have[id] = v;
+    // Work described in resume bullets is evidence, but only "partly": confirm it in the skill guide
+    for (const id of resumeEvidence(profile)) if (!have[id]) have[id] = "partly";
+    return have;
+  }
+  function classCoverage(profile) {
+    const out = {};
+    const add = m => {
+      for (const id of m.yes || []) out[id] = "yes";
+      for (const id of m.partly || []) if (!out[id]) out[id] = "partly";
+    };
+    for (const raw of profile.classes) {
+      const course = gsuCourseFor(raw);
+      if (course) { add(course); continue; }
+      const t = raw.toLowerCase();
+      for (const m of CLASS_MAP) if (m.re.test(t)) add(m);
+    }
+    return out;
+  }
+
+  // Returns [{id, name, have, why}]
+  function analyze(posting, have) {
+    const t = (posting.role + "\n" + posting.text).toLowerCase();
+    return SKILLS.filter(s => s.re.test(t)).map(s => ({ id: s.id, name: s.name, have: have[s.id] || "no", why: "" }));
+  }
+
+  // ---------- DOM helper ----------
+  function h(tag, attrs, ...kids) {
+    const el = document.createElement(tag);
+    if (attrs) for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k === "class") el.className = v;
+      else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+      else if (k === "text") el.textContent = v;
+      else el.setAttribute(k, v === true ? "" : v);
+    }
+    for (const k of kids.flat()) if (k != null && k !== false) el.append(k instanceof Node ? k : document.createTextNode(String(k)));
+    return el;
+  }
+  const MARK = { yes: "✓", partly: "~", no: "○", learning: "◐" };
+  const isLearning = id => state.profile.learning.includes(id);
+  // How a skill should look: having it wins, then studying it, then what the check found
+  const shown = (id, v) => v === "yes" ? "yes" : isLearning(id) ? "learning" : v;
+  function setLearning(id, on) {
+    const list = state.profile.learning.filter(x => x !== id);
+    if (on) list.push(id);
+    state.profile.learning = list;
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+  }
+
+
+  // ---------- Class plan ----------
+  const SEASONS = ["Spring", "Summer", "Fall"];
+  function termIndex(id) { const [y, n] = id.split("-").map(Number); return y * 3 + (n - 1); }
+  function termAt(ix) { return { id: Math.floor(ix / 3) + "-" + (ix % 3 + 1), codes: [] }; }
+  function termName(id) { const ix = termIndex(id); return SEASONS[ix % 3] + " " + Math.floor(ix / 3); }
+  const isSummer = id => id.endsWith("-2");
+  // The first term that hasn't started yet
+  function nextTermIx(now) {
+    const y = now.getFullYear(), m = now.getMonth();
+    return m < 4 ? y * 3 + 1 : m < 7 ? y * 3 + 2 : (y + 1) * 3;
+  }
+  function gradTermIx(text) {
+    const y = /(\d{4})/.exec(text || "");
+    if (!y) return null;
+    const t = text.toLowerCase();
+    const n = /spring|jan|feb|mar|apr|may/.test(t) ? 0 : /summer|jun|jul/.test(t) ? 1 : /fall|autumn|aug|sep|oct|nov|dec/.test(t) ? 2 : null;
+    return n == null ? null : Number(y[1]) * 3 + n;
+  }
+  function planTerms() { return state.plan.terms; }
+  function setupTerms() {
+    const first = nextTermIx(new Date());
+    const grad = gradTermIx(state.profile.grad);
+    const last = grad != null && grad >= first && grad - first < 15 ? grad : first + 5;
+    state.plan.terms = [];
+    for (let ix = first; ix <= last; ix++) state.plan.terms.push(termAt(ix));
+  }
+  function addTerm() {
+    const t = planTerms();
+    const ix = t.length ? termIndex(t[t.length - 1].id) + 1 : nextTermIx(new Date());
+    t.push(termAt(ix));
+  }
+  function unplace(code) {
+    const c = COURSE_BY_CODE[code];
+    const gone = [code, ...(c && c.last ? c.co || [] : [])];
+    for (const t of planTerms()) t.codes = t.codes.filter(x => !gone.includes(x));
+  }
+  function place(code, termId) {
+    unplace(code);
+    const t = planTerms().find(x => x.id === termId);
+    if (t) t.codes.push(code);
+    // A course and the one it must be taken with go together
+    const c = COURSE_BY_CODE[code];
+    for (const co of (c && c.last ? c.co || [] : [])) { unplace(co); if (t) t.codes.push(co); }
+  }
+  function planContext() {
+    const taken = new Set();
+    for (const cls of state.profile.classes) for (const code of codesIn(cls)) { taken.add(code); if (ALIASES[code]) taken.add(ALIASES[code]); }
+    const where = {};
+    planTerms().forEach((t, i) => { for (const c of t.codes) if (!taken.has(c)) where[c] = i; });
+    return { taken, where, lastPos: planTerms().length - 1 };
+  }
+  const listOf = xs => xs.length <= 2 ? xs.join(" and ") : xs.slice(0, -1).join(", ") + ", and " + xs[xs.length - 1];
+  // Problems with taking a course in the term at position pos
+  function issuesFor(c, pos, ctx) {
+    const before = code => ctx.taken.has(code) || (ctx.where[code] !== undefined && ctx.where[code] < pos);
+    const byThen = code => ctx.taken.has(code) || (ctx.where[code] !== undefined && ctx.where[code] <= pos);
+    const hard = [], soft = [];
+    const missing = (c.pre || []).filter(x => !before(x));
+    for (const alts of c.any || []) if (!alts.some(before)) missing.push(alts.join(" or "));
+    if (missing.length) hard.push("Needs " + listOf(missing) + " first");
+    const co = (c.co || []).filter(x => !byThen(x));
+    if (co.length) hard.push("Take with " + listOf(co));
+    if (c.majorCount) {
+      const n = MAJOR.filter(before).length;
+      if (n < c.majorCount) hard.push("Needs " + c.majorCount + " accounting major classes first (you'd have " + n + ")");
+    }
+    if (c.last && pos < ctx.lastPos) soft.push("Best in your final semester");
+    return { hard, soft };
+  }
+  function termHours(t, ctx) { return t.codes.filter(c => !ctx.taken.has(c)).reduce((n, c) => n + COURSE_BY_CODE[c].hrs, 0); }
+  const hourCap = t => isSummer(t.id) ? 6 : 15;
+
+  // Fill in the required classes that are left, earliest possible term first. The first pass keeps
+  // semesters at 15 hours (6 in summer); only if that can't fit everything does a second pass go to 18 (9).
+  function autoPlan() {
+    if (!planTerms().length) setupTerms();
+    const ctx = planContext();
+    const terms = planTerms(), final = terms.length - 1;
+    const pending = REQUIRED.filter(code => !ctx.taken.has(code) && ctx.where[code] === undefined && !COURSE_BY_CODE[code].co?.some(x => COURSE_BY_CODE[x].last));
+    let stretched = false;
+    for (const [full, summer] of [[15, 6], [18, 9]]) {
+      if (!pending.length) break;
+      if (full === 18) stretched = true;
+      terms.forEach((t, pos) => {
+        let hrs = termHours(t, ctx);
+        const cap = isSummer(t.id) ? summer : full;
+        const ready = pending
+          .filter(code => !issuesFor(COURSE_BY_CODE[code], pos, ctx).hard.some(x => !x.startsWith("Take with")))
+          .filter(code => COURSE_BY_CODE[code].last ? pos === final : !(pos === final && BEFORE_LAST.has(code)))
+          .sort((a, b) => DEPTH[b] - DEPTH[a] || UNLOCKS[b] - UNLOCKS[a] || a.localeCompare(b));
+        for (const code of ready) {
+          const c = COURSE_BY_CODE[code];
+          if (hrs + c.hrs > cap) continue;
+          place(code, t.id); hrs += c.hrs;
+          ctx.where[code] = pos;
+          for (const co of c.last ? c.co || [] : []) ctx.where[co] = pos;
+          pending.splice(pending.indexOf(code), 1);
+        }
+      });
+    }
+    return { left: pending, stretched: stretched && !pending.length };
+  }
+
+
+  // ---------- Icons (Lucide, ISC license) ----------
+  const ICONS = {
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+    search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+    alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+    dashed: '<circle cx="12" cy="12" r="9" stroke-dasharray="3.2 3.2"/>',
+    half: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
+    partly: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
+    cap: '<path d="M22 10v6"/><path d="M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+    grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
+    briefcase: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+    book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    external: '<path d="M7 7h10v10"/><path d="M7 17 17 7"/>',
+    sparkles: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+    pencil: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+    list: '<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
+    target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    chart: '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+    star: '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',
+    copy: '<rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  };
+  function icon(name, cls) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("class", "ico" + (cls ? " " + cls : ""));
+    svg.setAttribute("aria-hidden", "true");
+    svg.innerHTML = ICONS[name] || "";
+    return svg;
+  }
+  const STATUS_ICON = { yes: "check", partly: "partly", learning: "half", no: "dashed" };
+  const STATUS_TEXT = { yes: "have", partly: "partly", learning: "learning", no: "missing" };
+  function statusIcon(v) { return icon(STATUS_ICON[v] || "dashed", "s-" + v); }
+
+  // ---------- Small helpers ----------
+  const VIEWS = [
+    { id: "plan", label: "Plan", icon: "grid", tabs: [["Library", "list"], ["Plan", "grid"], ["Checks", "check"]] },
+    { id: "postings", label: "Internships", icon: "briefcase" },
+    { id: "skills", label: "Skills", icon: "book", tabs: [["Mine", "user"], ["Guide", "book"], ["Studying", "half"]] },
+    { id: "summary", label: "Summary", icon: "file" },
+  ];
+  ui.view = "plan";
+  ui.pane = { plan: "center", postings: "center", skills: "center" };
+  ui.focusTerm = null;
+  ui.libQuery = "";
+  ui.libFilter = "all";
+  ui.dialog = null;
+  ui.openChecks = new Set();
+
+  function shortTerm(id) { const ix = termIndex(id); return ["Spr", "Sum", "Fall"][ix % 3] + " " + String(Math.floor(ix / 3)).slice(2); }
+  function academicYear(id) { const ix = termIndex(id), y = Math.floor(ix / 3); return ix % 3 === 2 ? y : y - 1; }
+  function fmt(n) { return Number.isInteger(n) ? String(n) : n.toFixed(1); }
+  const keyActivate = fn => e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(e); } };
+  function armLater(key) { setTimeout(() => { if (ui.armed === key) { ui.armed = null; render(); } }, 3500); }
+
+  function addTag(key, value) {
+    const v = value.trim().replace(/\s+/g, " ");
+    if (!v) return;
+    ensureOwn();
+    const list = state.profile[key];
+    if (!list.some(x => x.toLowerCase() === v.toLowerCase())) list.push(v);
+    commit();
+  }
+  function setTaken(code, on) {
+    if (on) { unplace(code); addTag("classes", courseLabel(COURSE_BY_CODE[code])); }
+    else {
+      state.profile.classes = state.profile.classes.filter(x => { const k = gsuCourseFor(x); return !(k && k.code === code); });
+      commit();
+    }
+  }
+  // Which of the viewer's skill tags and classes count toward a skill
+  function skillSources(profile, s) {
+    const tags = profile.skills.filter(t => s.re.test(t.toLowerCase()) || t.toLowerCase() === s.name.toLowerCase());
+    const classes = profile.classes.filter(c => {
+      const course = gsuCourseFor(c);
+      const m = course ? [course] : CLASS_MAP.filter(x => x.re.test(c.toLowerCase()));
+      return m.some(x => (x.yes || []).includes(s.id) || (x.partly || []).includes(s.id));
+    });
+    if (resumeEvidence(profile).has(s.id)) classes.push("your resume bullets");
+    return { tags, classes };
+  }
+  // How pressing a posting's deadline is. Only postings you haven't applied to yet can be urgent.
+  function dueInfo(p) {
+    if (!p.deadline) return null;
+    const d = new Date(p.deadline + "T00:00:00");
+    if (isNaN(d)) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const days = Math.round((d - today) / 864e5);  // whole calendar days, so tomorrow is 1
+    const label = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (!OPEN_STATUSES.includes(p.status)) return { text: "Due " + label, level: "", days };
+    if (days < 0) return { text: "Overdue · " + label, level: "overdue", days };
+    if (days <= 3) return { text: (days === 0 ? "Due today" : "Due in " + days + "d") + " · " + label, level: "urgent", days };
+    if (days <= 7) return { text: "Due in " + days + "d · " + label, level: "soon", days };
+    return { text: "Due " + label, level: "", days };
+  }
+  // Link identity for spotting the same posting saved twice: ignore tracking junk, case, and trailing slashes
+  function linkKey(u) {
+    const raw = String(u || "").trim();
+    if (!raw) return "";
+    try {
+      const x = new URL(/^https?:\/\//i.test(raw) ? raw : "https://" + raw);
+      for (const k of [...x.searchParams.keys()]) if (/^utm_|^(ref|refid|src|source|trk|trackingid|gh_src|lipi)$/i.test(k)) x.searchParams.delete(k);
+      x.searchParams.sort();
+      const q = x.searchParams.toString();
+      return (x.hostname.replace(/^www\./, "") + x.pathname.replace(/\/+$/, "") + (q ? "?" + q : "")).toLowerCase();
+    } catch { return raw.toLowerCase().replace(/\/+$/, ""); }
+  }
+  function findDuplicate(link, exceptId) {
+    const key = linkKey(link);
+    return key ? state.postings.find(x => x.id !== exceptId && linkKey(x.link) === key) : null;
+  }
+  function matchOf(p, have) {
+    const skills = analyze(p, have);
+    const score = skills.filter(s => s.have === "yes").length + 0.5 * skills.filter(s => s.have === "partly").length;
+    return { skills, score, total: skills.length };
+  }
+
+  // ---------- Frame ----------
+  function renderTop() {
+    const brand = document.getElementById("brand");
+    if (!brand.firstChild) {
+      brand.append(icon("cap"), h("span", { class: "name" }, "Internship Ledger"));
+      document.getElementById("saveState").before(h("button", { type: "button", class: "btn ghost sm", id: "palBtn", title: "Search everything (⌘K)", onclick: openPalette },
+        icon("search"), h("span", { class: "kbd" }, "⌘K")));
+    }
+    document.getElementById("views").replaceChildren(...VIEWS.map(v =>
+      h("button", { type: "button", "aria-pressed": String(ui.view === v.id), onclick: () => { ui.view = v.id; render(); } },
+        icon(v.icon), h("span", { class: "lbl" }, v.label))));
+  }
+  function panes(parts) {
+    const v = VIEWS.find(x => x.id === ui.view);
+    const show = ui.pane[ui.view];
+    return [
+      h("div", { class: "panes", "data-show": show },
+        h("aside", { class: "pane side left", "aria-label": v.tabs[0][0] }, ...parts.left),
+        h("main", { class: "pane center", "aria-label": v.tabs[1][0] }, ...parts.center),
+        h("aside", { class: "pane side right", "aria-label": v.tabs[2][0] }, ...parts.right)),
+      h("nav", { class: "mobile-tabs", "aria-label": "Sections" }, ...["left", "center", "right"].map((k, i) =>
+        h("button", { type: "button", "aria-pressed": String(show === k), onclick: () => { ui.pane[ui.view] = k; render(); } },
+          icon(v.tabs[i][1], "lg"), v.tabs[i][0]))),
+    ];
+  }
+  const scroller = (key, ...kids) => h("div", { class: "scroll", "data-scroll": key }, ...kids);
+
+  function render() {
+    // Keep focus, caret and scroll positions across redraws
+    const active = document.activeElement, activeId = active && active.id;
+    let caret = null;
+    try { if (active && typeof active.selectionStart === "number") caret = [active.selectionStart, active.selectionEnd]; } catch {}
+    const scrolls = {};
+    document.querySelectorAll("#view [data-scroll]").forEach(el => { scrolls[el.dataset.scroll] = el.scrollTop; });
+
+    document.getElementById("exampleBanner").hidden = !state.example;
+    renderTop();
+    const have = haveMap(state.profile);
+    const parts = ui.view === "plan" ? planView() : ui.view === "postings" ? postingsView(have)
+      : ui.view === "summary" ? summaryView(have) : skillsView(have);
+    document.getElementById("view").replaceChildren(...parts.filter(Boolean));
+
+    document.querySelectorAll("#view [data-scroll]").forEach(el => { if (scrolls[el.dataset.scroll] != null) el.scrollTop = scrolls[el.dataset.scroll]; });
+    if (activeId && !document.getElementById("dlg").contains(active)) {
+      const el = document.getElementById(activeId);
+      if (el && el !== document.activeElement) {
+        el.focus({ preventScroll: true });
+        try { if (caret) el.setSelectionRange(caret[0], caret[1]); } catch {}
+      }
+    }
+    if (ui.dialog && ui.dialog.live) renderDialog();
+  }
+
+  // ---------- Plan ----------
+  function statusFn(ctx) {
+    return code => ctx.taken.has(code) ? "done"
+      : ctx.where[code] !== undefined ? (issuesFor(COURSE_BY_CODE[code], ctx.where[code], ctx).hard.length ? "bad" : "planned")
+      : "open";
+  }
+  // The "can I graduate?" answer, shared by the checklist and the summary
+  function planVerdict(ctx, terms, status) {
+    const open = REQUIRED.filter(c => status(c) === "open");
+    const bad = [];
+    terms.forEach((t, pos) => t.codes.forEach(code => {
+      if (ctx.taken.has(code)) return;
+      const iss = issuesFor(COURSE_BY_CODE[code], pos, ctx);
+      if (iss.hard.length) bad.push({ code, msg: iss.hard[0] });
+    }));
+    let headline, detail, tone = "";
+    if (bad.length) { headline = bad.length + (bad.length === 1 ? " class is" : " classes are") + " out of order"; detail = "Planned before a prerequisite is done."; tone = "bad"; }
+    else if (open.length) {
+      headline = open.length + (open.length === 1 ? " class" : " classes") + " left to place";
+      detail = terms.length ? "Place them yourself, or let the planner fill them in." : "Set up your semesters to start.";
+    } else { headline = "Every requirement is covered"; detail = "Done or planned, in an order that works."; tone = "ok"; }
+    return { open, bad, headline, detail, tone };
+  }
+  // The earliest semester the remaining required classes could all be done, planning from scratch
+  let earliestMemo = null;
+  function earliestFinish() {
+    const first = nextTermIx(new Date());
+    const key = JSON.stringify([state.profile.classes, first]);
+    if (earliestMemo && earliestMemo.key === key) return earliestMemo.value;
+    let value = null;
+    const left = REQUIRED.filter(c => !planContext().taken.has(c));
+    if (!left.length) value = { done: true };
+    else {
+      const saved = state.plan;
+      try {
+        for (let n = 1; n <= 12 && !value; n++) {
+          state.plan = { terms: Array.from({ length: n }, (_, i) => termAt(first + i)) };
+          const r = autoPlan();
+          if (!r.left.length) value = { id: state.plan.terms[n - 1].id, stretched: r.stretched };
+        }
+      } finally { state.plan = saved; }
+    }
+    earliestMemo = { key, value };
+    return value;
+  }
+  function goalCheck() {
+    const early = earliestFinish(), goal = gradTermIx(state.profile.grad);
+    if (!early || early.done) return null;
+    const name = termName(early.id) + (early.stretched ? " (needs an 18-hour semester)" : "");
+    if (goal == null) return { kind: "open", label: "Earliest possible finish", n: shortTerm(early.id), items: [["Set your graduation date under Skills to check it.", null], ["Earliest possible: " + name, null]] };
+    const ok = termIndex(early.id) <= goal;
+    return { kind: ok ? "ok" : "bad", label: "Graduate by " + termName(termAt(goal).id), n: shortTerm(early.id),
+      items: [[(ok ? "Reachable. " : "Not reachable at these loads. ") + "Earliest possible: " + name + ".", null]] };
+  }
+
+  function planView() {
+    const ctx = planContext(), terms = planTerms();
+    if (!terms.some(t => t.id === ui.focusTerm)) ui.focusTerm = terms.length ? terms[0].id : null;
+    const status = statusFn(ctx);
+    return [rail(ctx, terms, status), ...panes({ left: libraryPane(ctx, terms, status), center: boardPane(ctx, terms), right: checksPane(ctx, terms, status) })];
+  }
+
+  function dragProps(code) {
+    return {
+      draggable: "true",
+      ondragstart: e => { e.dataTransfer.setData("text/plain", code); e.dataTransfer.effectAllowed = "move"; document.body.classList.add("dragging"); },
+      ondragend: () => { document.body.classList.remove("dragging"); document.querySelectorAll(".term.drop").forEach(el => el.classList.remove("drop")); },
+    };
+  }
+
+  function lastPlannedPos(ctx, terms) {
+    let last = -1;
+    terms.forEach((t, i) => { if (t.codes.some(c => !ctx.taken.has(c))) last = i; });
+    return last;
+  }
+
+  const SHORT_GROUP = { lower: "Lower-division", foundation: "Foundation", core: "Junior core", major: "Accounting major", senior: "Senior" };
+  function rail(ctx, terms, status) {
+    const done = REQUIRED.filter(c => ctx.taken.has(c)).length;
+    const planned = REQUIRED.filter(c => ["planned", "bad"].includes(status(c))).length;
+    const early = earliestFinish();
+    const pct = (n, of) => (100 * n / of).toFixed(1) + "%";
+    const groups = REQ_GROUPS.filter(g => g.id !== "elective").map(g => {
+      const cs = COURSES.filter(c => c.req === g.id).map(c => status(c.code));
+      const d = cs.filter(x => x === "done").length, pl = cs.filter(x => x === "planned").length, b = cs.filter(x => x === "bad").length;
+      return h("button", {
+        type: "button", class: "rg grp-" + g.id, title: SHORT_GROUP[g.id] + ": " + d + " done, " + (pl + b) + " planned, " + (cs.length - d - pl - b) + " not planned",
+        onclick: () => {
+          ui.libFilter = "all"; ui.libQuery = ""; ui.pane.plan = "left"; render();
+          const el = document.getElementById("lib-g-" + g.id);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        },
+      },
+        h("span", { class: "top" }, h("span", { class: "gl" }, h("i", { class: "gdot" }), SHORT_GROUP[g.id]), h("span", { class: "mono" }, (d + pl + b) + "/" + cs.length)),
+        h("span", { class: "bar" },
+          h("span", { class: "d", style: "width:" + pct(d, cs.length) }),
+          h("span", { class: "p", style: "width:" + pct(pl, cs.length) }),
+          h("span", { class: "b", style: "width:" + pct(b, cs.length) })));
+    });
+    return h("div", { class: "rail" },
+      h("div", { class: "rail-groups" }, ...groups),
+      h("div", { class: "rail-stats" },
+        h("span", null, h("b", { class: "mono" }, done), " done"),
+        h("span", null, h("b", { class: "mono" }, planned), " planned"),
+        early && !early.done ? h("span", { style: "display:inline-flex;align-items:center;gap:4px", title: "Earliest possible finish" }, icon("cap", "sm"), h("b", { class: "mono" }, shortTerm(early.id))) : null));
+  }
+
+  function libraryPane(ctx, terms, status) {
+    const q = ui.libQuery.trim().toLowerCase();
+    const FILTERS = [["all", "All"], ["open", "To place"], ["elective", "Electives"], ["done", "Done"]];
+    const match = c => {
+      if (q && !(c.code.toLowerCase().includes(q) || c.title.toLowerCase().includes(q))) return false;
+      const st = status(c.code);
+      if (ui.libFilter === "open") return st === "open" && c.req !== "elective";
+      if (ui.libFilter === "elective") return c.req === "elective";
+      if (ui.libFilter === "done") return st === "done";
+      return true;
+    };
+    const rows = [];
+    let shown = 0;
+    for (const g of REQ_GROUPS) {
+      const cs = COURSES.filter(c => c.req === g.id && match(c));
+      if (!cs.length) continue;
+      rows.push(h("div", { class: "group-label grp-" + g.id, id: "lib-g-" + g.id }, h("i", { class: "gdot" }), g.name));
+      for (const c of cs) { shown++; rows.push(libRow(c, ctx, terms, status)); }
+    }
+    return [
+      h("div", { class: "pane-head" },
+        h("div", { class: "search" }, icon("search"),
+          h("input", { class: "input", id: "lib-q", type: "search", placeholder: "Search classes…", value: ui.libQuery, "aria-label": "Search classes",
+            oninput: e => { ui.libQuery = e.target.value; render(); } })),
+        h("div", { class: "toggles", role: "group", "aria-label": "Show" }, ...FILTERS.map(([k, l]) =>
+          h("button", { type: "button", class: "toggle", "aria-pressed": String(ui.libFilter === k), onclick: () => { ui.libFilter = k; render(); } }, l)))),
+      scroller("lib", ...(rows.length ? rows : [h("p", { class: "empty-state" }, "Nothing matches.")])),
+      h("div", { class: "pane-foot" }, h("span", { class: "mono" }, shown), " of ", h("span", { class: "mono" }, COURSES.length),
+        ui.focusTerm ? " · + adds to " + termName(ui.focusTerm) : ""),
+    ];
+  }
+
+  function libRow(c, ctx, terms, status) {
+    const st = status(c.code), pos = ctx.where[c.code];
+    let end;
+    if (st === "done") end = h("span", { class: "badge ok" }, icon("check", "sm"), "Done");
+    else if (pos !== undefined) end = h("span", { class: "badge mono" + (st === "bad" ? " bad" : "") }, shortTerm(terms[pos].id));
+    else if (ui.focusTerm) end = h("button", {
+      type: "button", class: "icon-btn", title: "Add to " + termName(ui.focusTerm), "aria-label": "Add " + c.code + " to " + termName(ui.focusTerm),
+      onclick: e => { e.stopPropagation(); place(c.code, ui.focusTerm); commit(); toast("Added " + c.code + " to " + termName(ui.focusTerm) + "."); },
+    }, icon("plus"));
+    const meta = [h("span", { class: "mono" }, c.hrs + "h")];
+    if (st !== "done" && UNLOCKS[c.code] >= 2) meta.push(h("span", null, "unlocks ", h("span", { class: "mono" }, UNLOCKS[c.code])));
+    if (st === "open") {
+      const need = (c.pre || []).filter(p => !ctx.taken.has(p)).length + (c.any || []).filter(a => !a.some(x => ctx.taken.has(x))).length;
+      if (need) meta.push(h("span", null, "needs ", h("span", { class: "mono" }, need)));
+    }
+    if (c.req === "elective") meta.push(h("span", null, "optional"));
+    return h("div", { class: "lib-row grp-" + c.req + (st !== "open" ? " on" : ""), role: "button", tabindex: "0", onclick: () => openCourse(c.code), onkeydown: keyActivate(() => openCourse(c.code)),
+      ...(st === "done" ? {} : dragProps(c.code)) },
+      h("div", { class: "l1" }, h("span", { class: "code" }, c.code), h("span", { class: "title" }, c.title)),
+      h("div", { class: "l2" }, ...meta),
+      h("div", { class: "end" }, end || null));
+  }
+
+  function boardPane(ctx, terms) {
+    if (!terms.length) {
+      return [scroller("board", h("div", { class: "empty-state" },
+        icon("cap", "lg"),
+        h("h3", null, "Plan your semesters"),
+        h("p", null, "Add every semester from now until graduation, then fill them with classes."),
+        h("button", { class: "btn primary", type: "button", onclick: setUpSemesters }, "Set up my semesters")))];
+    }
+    const years = new Map();
+    terms.forEach((t, pos) => { const y = academicYear(t.id); if (!years.has(y)) years.set(y, []); years.get(y).push([t, pos]); });
+    return [scroller("board", h("div", { class: "board" },
+      ...[...years].map(([y, list]) => h("section", { class: "year" },
+        h("div", { class: "year-label" }, y + "–" + String(y + 1).slice(2)),
+        h("div", { class: "terms" }, ...list.map(([t, pos]) => termCard(t, pos, ctx, terms))))),
+      h("button", { type: "button", class: "btn dashed sm", onclick: () => { addTerm(); commit(); } }, icon("plus"), "Add term")))];
+  }
+
+  function termCard(t, pos, ctx, terms) {
+    const codes = t.codes.filter(c => !ctx.taken.has(c));
+    const hrs = termHours(t, ctx), heavy = hrs > (isSummer(t.id) ? 9 : 18);
+    const focused = ui.focusTerm === t.id, armKey = "term-" + t.id, armed = ui.armed === armKey;
+    const rows = codes.map(code => {
+      const c = COURSE_BY_CODE[code], iss = issuesFor(c, pos, ctx);
+      const note = [...iss.hard, ...iss.soft].join(". ");
+      return h("div", {
+        class: "slot grp-" + c.req + (c.req !== "elective" ? " req" : "") + (iss.hard.length ? " bad" : ""),
+        role: "button", tabindex: "0", title: note || null,
+        onclick: e => { e.stopPropagation(); openCourse(code); }, onkeydown: keyActivate(() => openCourse(code)),
+        ...dragProps(code),
+      },
+        h("span", { class: "code" }, c.code),
+        h("span", { class: "title" }, c.title),
+        iss.hard.length ? h("span", { class: "warn" }, icon("alert", "sm"), h("span", { class: "sr-only" }, note))
+          : iss.soft.length ? h("span", { class: "muted", style: "display:inline-flex" }, icon("info", "sm"), h("span", { class: "sr-only" }, note)) : null,
+        h("button", { type: "button", class: "icon-btn rm", "aria-label": "Remove " + c.code, onclick: e => { e.stopPropagation(); unplace(code); commit(); } }, icon("trash", "sm")));
+    });
+    return h("section", {
+      class: "term" + (focused ? " focus" : "") + (heavy ? " over" : ""), "aria-label": termName(t.id),
+      onclick: () => { if (ui.focusTerm !== t.id) { ui.focusTerm = t.id; render(); } },
+      ondragover: e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; e.currentTarget.classList.add("drop"); },
+      ondragleave: e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove("drop"); },
+      ondrop: e => {
+        e.preventDefault(); e.currentTarget.classList.remove("drop");
+        const code = e.dataTransfer.getData("text/plain");
+        if (!COURSE_BY_CODE[code] || planContext().taken.has(code)) return;
+        place(code, t.id); ui.focusTerm = t.id; commit();
+        toast(code + " planned for " + termName(t.id) + ".");
+      },
+    },
+      h("header", { class: "term-head" },
+        h("h3", null, termName(t.id)),
+        h("span", { class: "term-meta" + (heavy ? " over" : ""), title: heavy ? "More than " + (isSummer(t.id) ? 9 : 18) + " hours is a very heavy load." : codes.length + " classes, " + hrs + " credit hours" },
+          icon("book", "sm"), h("span", { class: "mono" }, codes.length), h("span", { style: "opacity:.4" }, "·"), h("span", { class: "mono" }, hrs + "h")),
+        h("button", {
+          type: "button", class: "icon-btn", style: armed ? "color:var(--destructive)" : null,
+          title: armed ? "Tap again to remove this term" : "Remove term", "aria-label": armed ? "Confirm removing " + termName(t.id) : "Remove " + termName(t.id),
+          onclick: e => {
+            e.stopPropagation();
+            if (codes.length && !armed) { ui.armed = armKey; render(); armLater(armKey); return; }
+            ui.armed = null; state.plan.terms = terms.filter(x => x.id !== t.id); commit();
+          },
+        }, icon(armed ? "alert" : "trash", "sm"))),
+      h("div", { class: "term-body" }, ...(rows.length ? rows : [h("p", { class: "empty-slot" }, focused ? "Drag a class here, or use + in the library" : "Empty")])));
+  }
+
+  function checkRow(key, kind, label, n, items) {
+    const ic = icon(kind === "ok" ? "check" : kind === "bad" ? "alert" : "dashed", kind === "ok" ? "i-ok" : kind === "bad" ? "i-bad" : "i-open");
+    const d = h("details", { class: "check", open: items.length > 0 && ui.openChecks.has(key) },
+      h("summary", null, ic, h("span", { class: "lbl" }, label), n ? h("span", { class: "n" }, n) : null),
+      items.length ? h("div", { class: "check-body" }, ...items.map(([t, fn]) => fn ? h("button", { type: "button", onclick: fn }, t) : h("span", null, t))) : null);
+    d.addEventListener("toggle", () => { if (d.open) ui.openChecks.add(key); else ui.openChecks.delete(key); });
+    return d;
+  }
+
+  function checksPane(ctx, terms, status) {
+    const { bad, headline, detail, tone } = planVerdict(ctx, terms, status);
+    const heavy = terms.filter(t => termHours(t, ctx) > (isSummer(t.id) ? 9 : 18));
+    const cap = COURSES.find(c => c.last);
+    const capOk = ctx.taken.has(cap.code) || (ctx.where[cap.code] !== undefined && ctx.where[cap.code] === lastPlannedPos(ctx, terms));
+
+    const goal = goalCheck();
+    const checks = goal ? [checkRow("goal", goal.kind, goal.label, goal.n, goal.items)] : [];
+    checks.push(...REQ_GROUPS.filter(g => g.id !== "elective").map(g => {
+      const cs = COURSES.filter(c => c.req === g.id), open = cs.filter(c => status(c.code) === "open");
+      return checkRow("g-" + g.id, open.length ? "open" : "ok", [h("i", { class: "gdot grp-" + g.id, style: "margin-right:6px" }), g.name], (cs.length - open.length) + "/" + cs.length,
+        open.map(c => [c.code + " " + c.title, () => openCourse(c.code)]));
+    }));
+    checks.push(
+      checkRow("prereq", bad.length ? "bad" : "ok", "Prerequisites in order", bad.length ? String(bad.length) : "",
+        bad.map(b => [b.code + ": " + b.msg, () => openCourse(b.code)])),
+      checkRow("cap", capOk ? "ok" : "open", "Capstone in the last semester", "",
+        capOk ? [] : [["BUSA 4980 and BUSA 4990 go last", () => openCourse(cap.code)]]),
+      checkRow("load", heavy.length ? "bad" : "ok", "No semester over 18 hours", heavy.length ? String(heavy.length) : "",
+        heavy.map(t => [termName(t.id) + ": " + termHours(t, ctx) + " hours", () => { ui.focusTerm = t.id; ui.pane.plan = "center"; render(); }])));
+
+    return [scroller("checks",
+      h("div", { class: "verdict" },
+        h("div", { class: "kicker" }, "Can I graduate?"),
+        h("div", { class: "headline " + tone }, headline),
+        h("div", { class: "detail" }, detail)),
+      h("div", { class: "checks" }, ...checks),
+      h("div", { class: "side-block" },
+        terms.length
+          ? h("button", { class: "btn primary", type: "button", onclick: fillIn, title: "Puts each class in the earliest semester its prerequisites allow, at up to 15 hours (6 in summer)" }, icon("sparkles"), "Fill in remaining classes")
+          : h("button", { class: "btn primary", type: "button", onclick: setUpSemesters }, "Set up my semesters"),
+        h("p", { class: "note" }, "Based on the " + CATALOG + ". Confirm your plan with a Robinson advisor.")))];
+  }
+
+  function setUpSemesters() { setupTerms(); commit(); toast("Added your semesters through " + (state.profile.grad || "graduation") + "."); }
+  function fillIn() {
+    const r = autoPlan(); commit();
+    toast(r.left.length
+      ? "Couldn't fit " + listOf(r.left) + ", even at 18 hours a semester. Add a term, or check the red notes."
+      : r.stretched ? "Everything fits, but only with some 18-hour semesters. Another term would lighten the load."
+      : "Filled in your remaining required classes.");
+  }
+
+  // ---------- Dialogs ----------
+  const dlg = () => document.getElementById("dlg");
+  function openCourse(code) { dlg().classList.remove("palette"); ui.dialog = { kind: "course", code, live: true }; renderDialog(); if (!dlg().open) dlg().showModal(); }
+  function closeDialog() { if (dlg().open) dlg().close(); ui.dialog = null; dlg().classList.remove("wide"); }
+  function openPosting(id) {
+    dlg().classList.remove("palette");
+    dlg().classList.add("wide");
+    ui.dialog = { kind: "posting-view", id, live: true };
+    renderDialog();
+    if (!dlg().open) dlg().showModal();
+  }
+  function renderDialog() {
+    if (!ui.dialog) return;
+    if (ui.dialog.kind === "course") dlg().replaceChildren(...courseDialog(ui.dialog.code).filter(Boolean));
+    if (ui.dialog.kind === "posting-view") {
+      const p = state.postings.find(x => x.id === ui.dialog.id);
+      if (!p) { closeDialog(); return; }
+      dlg().replaceChildren(postingCard(p, haveMap(state.profile)));
+    }
+  }
+  function dialogHead(kicker, title, sub) {
+    return h("div", { class: "dlg-head" },
+      h("div", { class: "t" }, kicker, h("h2", null, title), sub || null),
+      h("button", { type: "button", class: "icon-btn", "aria-label": "Close", onclick: closeDialog }, icon("x")));
+  }
+
+  function courseDialog(code) {
+    const c = COURSE_BY_CODE[code], ctx = planContext(), terms = planTerms();
+    const taken = ctx.taken.has(code), pos = ctx.where[code];
+    const iss = pos !== undefined ? issuesFor(c, pos, ctx) : { hard: [], soft: [] };
+    const group = REQ_GROUPS.find(g => g.id === c.req).name;
+    const preItem = alts => {
+      const done = alts.find(x => ctx.taken.has(x)), planned = alts.find(x => ctx.where[x] !== undefined);
+      const mark = done ? "yes" : planned ? "learning" : "no";
+      const label = done ? "done" : planned ? shortTerm(terms[ctx.where[planned]].id) : "not planned";
+      return h("div", { class: "req-item" }, statusIcon(mark),
+        h("span", { style: "flex:1" }, ...alts.flatMap((x, i) => [i ? " or " : null,
+          COURSE_BY_CODE[x] ? h("button", { type: "button", class: "mono", style: "text-decoration:underline;text-underline-offset:2px", onclick: () => openCourse(x) }, x) : h("span", { class: "mono" }, x)])),
+        h("span", { class: "mono muted", style: "font-size:11px" }, label));
+    };
+    const pres = [...(c.pre || []).map(p => preItem([p])), ...(c.any || []).map(a => preItem(a))];
+    const skills = [...(c.yes || []).map(id => [id, "yes"]), ...(c.partly || []).map(id => [id, "partly"])].filter(([id]) => SKILL_BY_ID[id]);
+    return [
+      dialogHead(
+        h("div", { class: "chips" }, h("span", { class: "badge mono" }, c.code), h("span", { class: "badge mono" }, c.hrs + " hrs"), h("span", { class: "badge grp grp-" + c.req }, group),
+          !taken && UNLOCKS[code] >= 2 ? h("span", { class: "badge primary" }, "unlocks " + UNLOCKS[code]) : null),
+        c.title,
+        WHY[code] || c.note ? h("p", { class: "muted", style: "font-size:13px" }, [WHY[code], c.note].filter(Boolean).join(" ")) : null),
+      iss.hard.length ? h("div", { class: "dlg-sec" }, ...iss.hard.map(x => h("p", { class: "alert" }, x + "."))) : null,
+      h("div", { class: "dlg-sec" }, h("div", { class: "kicker" }, "Prerequisites"),
+        pres.length ? h("div", { class: "req-list" }, ...pres) : h("p", { class: "muted" }, "None beyond the college's upper-division rules.")),
+      c.co && c.co.length ? h("div", { class: "dlg-sec" }, h("div", { class: "kicker" }, "Taken with"), h("p", null, listOf(c.co))) : null,
+      skills.length ? h("div", { class: "dlg-sec" }, h("div", { class: "kicker" }, "Builds skills"),
+        h("div", { class: "chips" }, ...skills.map(([id, v]) => h("button", { type: "button", class: "chip", onclick: () => openSkill(id) }, statusIcon(v), SKILL_BY_ID[id].name)))) : null,
+      h("div", { class: "dlg-foot" },
+        !taken && terms.length ? h("select", { class: "input", id: "dlg-plan", style: "width:auto;height:32px", "aria-label": "Plan " + code,
+          onchange: e => { if (e.target.value) place(code, e.target.value); else unplace(code); commit(); } },
+          h("option", { value: "" }, pos !== undefined ? "Not planned" : "Plan for…"),
+          ...terms.map(t => h("option", { value: t.id, selected: pos !== undefined && terms[pos].id === t.id }, termName(t.id)))) : null,
+        h("span", { class: "spacer" }),
+        taken
+          ? h("button", { type: "button", class: "btn", onclick: () => setTaken(code, false) }, icon("check"), "Taken · undo")
+          : h("button", { type: "button", class: "btn primary", onclick: () => { setTaken(code, true); toast(code + " marked as taken."); } }, "I've taken this")),
+    ];
+  }
+
+  function openPostingForm(p) {
+    dlg().classList.remove("palette");
+    ui.dialog = { kind: "posting", id: p ? p.id : null, live: false };
+    const field = (id, label, input, hint) => h("label", { class: "field" }, h("span", null, label, hint ? h("span", { class: "muted" }, " · " + hint) : null), input);
+    const form = h("form", { onsubmit: savePosting },
+      dialogHead(null, p ? "Edit posting" : "Add a posting",
+        h("p", { class: "muted", style: "font-size:13px" }, "Paste the whole job description. That's what the skill check reads.")),
+      h("div", { class: "dlg-sec" },
+        h("div", { class: "form-grid" },
+          field("f-company", "Company", h("input", { class: "input", id: "f-company", type: "text", required: true, value: p ? p.company : "", placeholder: "Smith & Lee CPAs" })),
+          field("f-role", "Role", h("input", { class: "input", id: "f-role", type: "text", value: p ? p.role : "", placeholder: "Audit Intern, Summer 2027" })),
+          field("f-link", "Link", h("input", { class: "input", id: "f-link", type: "url", value: p ? p.link : "", placeholder: "https://",
+            oninput: e => showDuplicate(findDuplicate(e.target.value, p && p.id)) }), "optional"),
+          field("f-deadline", "Deadline", h("input", { class: "input", id: "f-deadline", type: "date", value: p ? p.deadline : "" }), "optional")),
+        h("div", { class: "alert", id: "f-dup", hidden: true, style: "display:flex;align-items:center;gap:8px;flex-wrap:wrap" }),
+        field("f-text", "Posting text", h("textarea", { class: "input", id: "f-text", placeholder: "Paste the job description…" }))),
+      h("div", { class: "dlg-foot" },
+        h("button", { type: "button", class: "btn ghost", onclick: closeDialog }, "Cancel"),
+        h("button", { type: "submit", class: "btn primary" }, p ? "Save changes" : "Add posting")));
+    dlg().replaceChildren(form);
+    form.querySelector("#f-text").value = p ? p.text : "";
+    if (!dlg().open) dlg().showModal();
+    form.querySelector("#f-company").focus();
+  }
+  function showDuplicate(dup) {
+    const box = document.getElementById("f-dup");
+    if (!box) return;
+    box.hidden = !dup;
+    if (!dup) return;
+    box.replaceChildren(h("span", { style: "flex:1" }, "You already saved this posting: ", h("b", null, dup.company || "Untitled posting"),
+      " (" + STATUS_LABEL[dup.status] + "). The same link can't be added twice."),
+      h("button", { type: "button", class: "btn sm", onclick: () => { closeDialog(); openPosting(dup.id); } }, "Open the saved one"));
+  }
+  function savePosting(e) {
+    e.preventDefault();
+    const val = id => document.getElementById(id).value;
+    const company = val("f-company").trim();
+    if (!company) { document.getElementById("f-company").focus(); return; }
+    let text = val("f-text");
+    if (text.length > MAX_TEXT) { text = text.slice(0, MAX_TEXT); toast("The posting was long, so only the first " + MAX_TEXT.toLocaleString() + " characters were kept."); }
+    const fields = { company, role: val("f-role").trim(), link: val("f-link").trim(), deadline: val("f-deadline"), text };
+    const editingId = ui.dialog && ui.dialog.id;
+    const dup = findDuplicate(fields.link, editingId);
+    if (dup) { showDuplicate(dup); document.getElementById("f-link").focus(); return; }
+    let id = editingId;
+    if (editingId) {
+      const p = state.postings.find(x => x.id === editingId);
+      if (p) Object.assign(p, fields);
+    } else {
+      ensureOwn();
+      id = "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      state.postings.push({ id, status: "Saved", createdAt: Date.now(), priority: false, ...fields });
+    }
+    closeDialog();
+    ui.view = "postings"; ui.postTab = "board";
+    commit();
+    toast(editingId ? "Posting updated." : "Posting added.");
+  }
+
+  // ---------- Resume help (no AI: plain matching) ----------
+  // Work that shows a skill without naming it, and the words postings use for it
+  const RESUME_HINTS = {
+    "ap-ar": [/invoice|vendor|bills? paid|collections?|paid on time|payments?/, "accounts payable"],
+    cost: [/change orders?|materials?|job cost|project cost|supply costs?/, "job costing"],
+    recon: [/\bmatch(ed|ing)?\b|tie[sd]? out|balanc(e|ed|ing) the/, "account reconciliations"],
+    journal: [/bookkeeping|record(ed|ing)?\b.*(expense|transaction|account|sale)/, "journal entries"],
+    payroll: [/wages|tips|paychecks?|timesheets?/, "payroll"],
+    excel: [/spreadsheets?|workbooks?/, "Excel"],
+    "fin-statements": [/10-k|balance sheet|income statement|ratios?/, "financial statements"],
+    communication: [/present(ed|ing)?|emails?|clients?|explain(ed|ing)?/, "communication"],
+    detail: [/\bcheck(ed|ing)?\b|review(ed|ing)?|verif(y|ied)|mistakes?|errors?|accura/, "attention to detail"],
+    teamwork: [/\bteam\b|coworkers?|with the (accounting|project)/, "teamwork"],
+    tax: [/\btax/, "tax preparation"],
+    analytical: [/analy[sz]/, "analysis"],
+    budget: [/budget|forecast/, "budgeting"],
+    "month-end": [/month[- ]end|closing the books/, "month-end close"],
+    controls: [/approv(al|ed|e)|segregat/, "internal controls"],
+  };
+  function resumeBullets(profile) {
+    return String(profile.resume || "").split("\n").map(b => b.replace(/^[\s•\-*·]+/, "").trim()).filter(b => b.length > 3);
+  }
+  function resumeEvidence(profile) {
+    const ids = new Set();
+    for (const b of resumeBullets(profile)) {
+      const low = b.toLowerCase();
+      for (const sk of SKILLS) if (sk.re.test(low) || (RESUME_HINTS[sk.id] && RESUME_HINTS[sk.id][0].test(low))) ids.add(sk.id);
+    }
+    return ids;
+  }
+  function resumeAdvice(skills, have) {
+    const bullets = resumeBullets(state.profile);
+    if (!bullets.length) return null;
+    const ids = [...new Set(skills.map(s => s.id).filter(id => SKILL_BY_ID[id]))];
+    const scored = bullets.map(b => {
+      const low = b.toLowerCase();
+      const direct = ids.filter(id => SKILL_BY_ID[id].re.test(low));
+      const implied = ids.filter(id => !direct.includes(id) && RESUME_HINTS[id] && RESUME_HINTS[id][0].test(low));
+      return { b, direct, implied, score: direct.length * 2 + implied.length };
+    });
+    const lead = scored.filter(x => x.score).sort((a, b) => b.score - a.score).slice(0, 3);
+    const reword = [];
+    for (const id of ids) {
+      if (scored.some(x => x.direct.includes(id))) continue;
+      const hit = scored.find(x => x.implied.includes(id));
+      if (hit) reword.push({ id, bullet: hit.b, phrase: RESUME_HINTS[id][1] });
+    }
+    const unshown = ids.filter(id => have[id] === "yes" && !scored.some(x => x.direct.includes(id) || x.implied.includes(id)));
+    return { lead, reword, unshown };
+  }
+  function resumeSection(skills, have) {
+    const clip = t => t.length > 120 ? t.slice(0, 117) + "…" : t;
+    const adv = resumeAdvice(skills, have);
+    const kids = [h("div", { class: "kicker" }, "For your resume")];
+    if (!adv) {
+      kids.push(h("p", { class: "note" }, "Paste your resume bullets under ",
+        h("button", { type: "button", style: "text-decoration:underline;text-underline-offset:2px", onclick: () => { ui.view = "skills"; ui.pane.skills = "left"; render(); const el = document.getElementById("p-resume"); if (el) el.focus(); } }, "Skills → Resume bullets"),
+        " to see which ones to lead with for this job."));
+      return h("div", { class: "card-sec" }, ...kids);
+    }
+    if (adv.lead.length) kids.push(h("div", { class: "rs-list" }, h("span", { class: "rs-h" }, "Lead with these bullets"),
+      ...adv.lead.map(x => h("div", { class: "rs-item" }, h("span", null, clip(x.b)),
+        h("span", { class: "chips" }, ...[...x.direct, ...x.implied].map(id => h("span", { class: "badge ok" }, SKILL_BY_ID[id].name)))))));
+    if (adv.reword.length) kids.push(h("div", { class: "rs-list" }, h("span", { class: "rs-h" }, "Use this posting's words"),
+      ...adv.reword.map(x => h("div", { class: "rs-item warn" },
+        h("span", null, "Say ", h("b", null, "\u201C" + x.phrase + "\u201D"), " so resume filters catch it. This bullet already shows it:"),
+        h("span", { class: "q" }, clip(x.bullet))))));
+    if (adv.unshown.length) kids.push(h("div", { class: "rs-list" }, h("span", { class: "rs-h" }, "You have these, but no bullet shows them"),
+      h("span", { class: "chips" }, ...adv.unshown.map(id => h("span", { class: "badge" }, SKILL_BY_ID[id].name)))));
+    if (!adv.lead.length && !adv.reword.length && !adv.unshown.length) kids.push(h("p", { class: "note" }, "None of your bullets match what this posting asks for yet. Check the missing skills above."));
+    return h("div", { class: "card-sec" }, ...kids);
+  }
+
+  // ---------- Internships ----------
+  // Most pressing first: overdue, then urgent, then starred, then soonest deadline
+  function boardOrder(a, b) {
+    const rank = p => { const d = dueInfo(p); return d && d.level === "overdue" ? 0 : d && d.level === "urgent" ? 1 : p.priority ? 2 : d && d.level === "soon" ? 3 : 4; };
+    return rank(a) - rank(b) || (a.deadline || "9999").localeCompare(b.deadline || "9999") || b.createdAt - a.createdAt;
+  }
+  function togglePriority(p) { p.priority = !p.priority; commit(); toast(p.priority ? "Marked as priority." : "Priority removed."); }
+  function setStatus(p, s) { if (p.status === s) return; p.status = s; commit(); toast((p.company || "Posting") + " moved to " + STATUS_LABEL[s] + "."); }
+
+  function postingsView(have) {
+    if (!ui.postTab) ui.postTab = "board";
+    const posts = state.postings;
+    const attention = posts.filter(p => { const d = dueInfo(p); return d && ["overdue", "urgent", "soon"].includes(d.level); }).sort(boardOrder);
+    const working = posts.filter(p => p.status === "In progress").length;
+    const bar = h("div", { class: "ptop" },
+      h("div", { class: "seg", role: "group", "aria-label": "Internships view" },
+        h("button", { type: "button", "aria-pressed": String(ui.postTab === "board"), onclick: () => { ui.postTab = "board"; render(); } }, icon("grid"), h("span", { class: "lbl" }, "Board")),
+        h("button", { type: "button", "aria-pressed": String(ui.postTab === "results"), onclick: () => { ui.postTab = "results"; render(); } }, icon("chart"), h("span", { class: "lbl" }, "Results"))),
+      h("div", { class: "pstats" },
+        h("span", null, h("b", { class: "mono" }, posts.length), " saved"),
+        h("span", null, h("b", { class: "mono" }, working), " working on"),
+        h("span", { class: attention.some(p => dueInfo(p).level !== "soon") ? "hot" : "" }, h("b", { class: "mono" }, attention.length), " due soon")),
+      h("span", { class: "spacer" }),
+      h("button", { type: "button", class: "btn primary sm", onclick: () => openPostingForm(null) }, icon("plus"), "Add a posting"));
+    if (!posts.length) {
+      return [bar, h("main", { class: "pane center", style: "flex:1" }, scroller("board-empty", h("div", { class: "empty-state" },
+        icon("briefcase", "lg"), h("h3", null, "No postings yet"),
+        h("p", null, "Find internships on Handshake, LinkedIn, or firm careers pages, then add them here to track them."),
+        h("button", { class: "btn primary", type: "button", onclick: () => openPostingForm(null) }, icon("plus"), "Add a posting"))))];
+    }
+    if (ui.postTab === "results") return [bar, h("main", { class: "pane center", style: "flex:1" }, ...resultsView(have))];
+    const strip = attention.length ? h("div", { class: "attn" },
+      h("span", { class: "attn-h" }, icon("alert", "sm"), "Needs attention"),
+      ...attention.map(p => { const d = dueInfo(p); return h("button", { type: "button", class: "attn-item lvl-" + d.level, onclick: () => openPosting(p.id) },
+        h("b", null, p.company || "Untitled"), h("span", { class: "mono" }, d.text)); })) : null;
+    const cols = STATUSES.map(st => {
+      const list = posts.filter(p => p.status === st).sort(boardOrder);
+      return h("section", {
+        class: "kcol st-" + STATUS_KEY[st], "aria-label": STATUS_LABEL[st],
+        ondragover: e => { if (!e.dataTransfer.types.includes("text/x-posting")) return; e.preventDefault(); e.currentTarget.classList.add("drop"); },
+        ondragleave: e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove("drop"); },
+        ondrop: e => {
+          e.preventDefault(); e.currentTarget.classList.remove("drop");
+          const p = state.postings.find(x => x.id === e.dataTransfer.getData("text/x-posting"));
+          if (p) setStatus(p, st);
+        },
+      },
+        h("header", { class: "kcol-head" }, h("i", { class: "sdot" }), h("span", null, STATUS_LABEL[st]), h("span", { class: "n mono" }, list.length)),
+        h("div", { class: "kcol-body" }, ...(list.length ? list.map(p => boardCard(p, have)) : [h("p", { class: "kempty" }, "Drag a card here")])));
+    });
+    return [bar, h("main", { class: "pane center", style: "flex:1" }, scroller("kanban", strip, h("div", { class: "kanban" }, ...cols)))];
+  }
+
+  function boardCard(p, have) {
+    const m = matchOf(p, have), d = dueInfo(p);
+    return h("article", {
+      class: "kcard st-" + STATUS_KEY[p.status] + (d && d.level ? " lvl-" + d.level : "") + (p.priority ? " prio" : ""),
+      role: "button", tabindex: "0", draggable: "true",
+      onclick: () => openPosting(p.id), onkeydown: keyActivate(() => openPosting(p.id)),
+      ondragstart: e => { e.dataTransfer.setData("text/x-posting", p.id); e.dataTransfer.effectAllowed = "move"; },
+    },
+      h("div", { class: "k1" },
+        h("span", { class: "co" }, p.company || "Untitled posting"),
+        h("button", { type: "button", class: "star" + (p.priority ? " on" : ""), "aria-pressed": String(p.priority), title: p.priority ? "Remove priority" : "Mark as priority",
+          "aria-label": (p.priority ? "Remove priority from " : "Mark as priority: ") + (p.company || "posting"),
+          onclick: e => { e.stopPropagation(); togglePriority(p); } }, icon("star", "sm"))),
+      p.role ? h("span", { class: "ro" }, p.role) : null,
+      h("div", { class: "k3" },
+        d ? h("span", { class: "due lvl-" + (d.level || "none") }, d.level === "overdue" || d.level === "urgent" ? icon("alert", "sm") : icon("clock", "sm"), d.text) : h("span", { class: "due lvl-none" }, "No deadline"),
+        m.total ? h("span", { class: "mono match", title: "Skills matched" }, fmt(m.score) + "/" + m.total) : null));
+  }
+
+  // The full view of one posting, shown in a dialog from the board
+  function postingCard(p, have) {
+    const m = matchOf(p, have), due = dueInfo(p);
+    const view = s => shown(s.id, s.have);
+    const order = { yes: 0, learning: 1, partly: 2, no: 3 };
+    const skills = m.skills.slice().sort((a, b) => order[view(a)] - order[view(b)]);
+    const armKey = "del-" + p.id, armed = ui.armed === armKey;
+    const secs = [];
+    secs.push(h("div", { class: "card-head st-" + STATUS_KEY[p.status], style: "border-top:4px solid var(--s);border-radius:14px 14px 0 0" },
+      h("div", { class: "t" },
+        state.example ? h("span", { class: "kicker" }, "Example") : null,
+        h("h2", null, p.company || "Untitled posting"),
+        p.role ? h("p", { class: "muted", style: "font-size:13px" }, p.role) : null,
+        h("div", { class: "chips", style: "margin-top:4px" },
+          due ? h("span", { class: "due lvl-" + (due.level || "none") }, due.text) : null,
+          p.link ? h("a", { class: "badge", href: p.link, target: "_blank", rel: "noopener", style: "text-decoration:none" }, "Open posting", icon("external", "sm")) : null)),
+      h("button", { type: "button", class: "star" + (p.priority ? " on" : ""), "aria-pressed": String(p.priority), title: p.priority ? "Remove priority" : "Mark as priority", onclick: () => togglePriority(p) }, icon("star")),
+      h("select", { class: "input", id: "status-" + p.id, style: "width:auto;height:28px;font-size:12px", "aria-label": "Status",
+        onchange: e => setStatus(p, e.target.value) }, ...STATUSES.map(s => h("option", { value: s, selected: s === p.status }, STATUS_LABEL[s]))),
+      h("button", { type: "button", class: "icon-btn", "aria-label": "Edit posting", title: "Edit", onclick: () => openPostingForm(p) }, icon("pencil", "sm")),
+      h("button", { type: "button", class: "icon-btn", style: armed ? "color:var(--destructive)" : null, "aria-label": armed ? "Confirm delete" : "Delete posting", title: armed ? "Tap again to delete" : "Delete",
+        onclick: () => {
+          if (!armed) { ui.armed = armKey; render(); armLater(armKey); return; }
+          ui.armed = null; state.postings = state.postings.filter(x => x.id !== p.id); closeDialog(); commit(); toast("Posting deleted.");
+        } }, icon(armed ? "alert" : "trash", "sm")),
+      h("button", { type: "button", class: "icon-btn", "aria-label": "Close", onclick: closeDialog }, icon("x"))));
+    if (m.total) {
+      secs.push(h("div", { class: "card-sec" },
+        h("div", { class: "meter" },
+          h("span", { class: "big" }, fmt(m.score) + "/" + m.total),
+          h("div", { style: "display:grid;gap:4px" }, h("span", { class: "kicker" }, "Skills matched"),
+            h("div", { class: "ticks", "aria-hidden": "true" }, ...skills.map(s => h("span", { class: "tick " + view(s), title: s.name }))))),
+        h("div", null, ...skills.map(s => h("button", {
+          type: "button", class: "skill-line", title: SKILL_BY_ID[s.id] ? "Open in the skill guide" : null,
+          onclick: () => { if (SKILL_BY_ID[s.id]) openSkill(s.id); },
+        }, statusIcon(view(s)), h("span", { class: "nm" }, s.name), h("span", { class: "st" }, STATUS_TEXT[view(s)]))))));
+    } else {
+      secs.push(h("div", { class: "card-sec" }, h("p", { class: "muted" }, p.text.trim()
+        ? "No skills from the accounting list turned up in this text."
+        : "Edit the posting and paste its text to see which skills it asks for.")));
+    }
+    secs.push(resumeSection(m.skills, have));
+    if (p.text.trim()) secs.push(h("div", { class: "card-sec" }, h("details", { class: "raw" }, h("summary", null, "Posting text"), h("pre", null, p.text))));
+    return h("article", null, ...secs);
+  }
+
+  // How many postings ask for each skill, and where the student stands on it
+  function skillTally(have, posts) {
+    const tally = {};
+    const rank = { no: 0, partly: 1, yes: 2 };
+    for (const p of posts) {
+      const seen = new Set();
+      for (const s of analyze(p, have)) {
+        if (seen.has(s.id)) continue; seen.add(s.id);
+        const t = tally[s.id] || (tally[s.id] = { id: s.id, name: s.name, count: 0, have: s.have });
+        t.count++;
+        if (rank[s.have] > rank[t.have]) t.have = s.have;
+      }
+    }
+    for (const t of Object.values(tally)) if (SKILL_BY_ID[t.id] && have[t.id]) t.have = have[t.id];
+    return Object.values(tally).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }
+  const JOB_TYPES = [
+    ["Audit", /audit|assurance/],
+    ["Tax", /\btax/],
+    ["Advisory", /advisory|consult|risk|forensic|valuation/],
+    ["Corporate accounting", /corporate|staff account|accounts (payable|receivable)|general ledger|month[- ]end|financial (analyst|reporting)|fp&a|controller/],
+  ];
+  function jobType(p) {
+    const role = (p.role + " " + p.company).toLowerCase(), text = p.text.toLowerCase();
+    for (const [name, re] of JOB_TYPES) if (re.test(role)) return name;
+    for (const [name, re] of JOB_TYPES) if (re.test(text.slice(0, 400))) return name;
+    return "Other";
+  }
+
+  function resultsView(have) {
+    const posts = state.postings, n = posts.length;
+    const rows = skillTally(have, posts);
+    const pct = c => Math.round(100 * c / n);
+    const status = r => shown(r.id, r.have);
+    const next = rows.filter(r => SKILL_BY_ID[r.id] && !["yes", "learning"].includes(status(r))).slice(0, 3);
+    const matches = posts.map(p => matchOf(p, have)).filter(m => m.total);
+    const avg = matches.length ? Math.round(100 * matches.reduce((a, m) => a + m.score / m.total, 0) / matches.length) : null;
+    const haveCount = rows.filter(r => status(r) === "yes").length;
+
+    const tile = (label, value, sub) => h("div", { class: "tile" }, h("span", { class: "kicker" }, label), h("span", { class: "tv mono" }, value), sub ? h("span", { class: "note" }, sub) : null);
+    const kids = [
+      h("div", { style: "display:grid;gap:2px" }, h("span", { class: "kicker" }, "Results"),
+        h("h2", { style: "font-size:20px;font-weight:600;letter-spacing:-0.01em" }, "What your " + n + " posting" + (n === 1 ? " asks" : "s ask") + " for"),
+        n < 5 ? h("p", { class: "note" }, "Add at least 5 postings for results you can rely on.") : null),
+      h("div", { class: "tiles" },
+        tile("Average match", avg == null ? "–" : avg + "%", "of each posting's skills"),
+        tile("Skills asked for", String(rows.length), "across all postings"),
+        tile("You have", haveCount + "/" + rows.length, "of those skills")),
+    ];
+
+    if (next.length) kids.push(h("section", { class: "card" },
+      h("div", { class: "card-sec", style: "border-top:0" }, h("div", { class: "kicker" }, "Study next"),
+        h("p", { class: "note" }, "The skills these postings ask for most that you don't have yet.")),
+      ...next.map((r, i) => {
+        const link = LINKS[r.id] && LINKS[r.id][0];
+        return h("div", { class: "card-sec next-row" },
+          h("span", { class: "rank mono" }, i + 1),
+          h("div", { style: "display:grid;gap:2px;min-width:0;flex:1" },
+            h("button", { type: "button", class: "nm", onclick: () => openSkill(r.id) }, r.name),
+            h("span", { class: "note" }, "Asked for in " + r.count + " of " + n + " postings (" + pct(r.count) + "%)" + (status(r) === "partly" ? ". You're partly there from your classes." : "."))),
+          link ? h("a", { class: "badge", href: link[1], target: "_blank", rel: "noopener", style: "text-decoration:none" }, "Learn free", icon("external", "sm")) : null,
+          h("button", { type: "button", class: "btn sm", onclick: () => { setLearning(r.id, true); commit(); toast("Added " + r.name + " to Studying now."); } }, icon("half"), "Start studying"));
+      })));
+
+    kids.push(h("section", { class: "card" },
+      h("div", { class: "card-sec", style: "border-top:0" }, h("div", { class: "kicker" }, "Most requested skills"),
+        h("p", { class: "note" }, "Every skill these postings ask for, from most to least common. Tap one to learn about it.")),
+      h("div", { class: "card-sec", style: "gap:2px" }, ...rows.map(r => h("button", { type: "button", class: "freq-row", onclick: () => { if (SKILL_BY_ID[r.id]) openSkill(r.id); } },
+        statusIcon(status(r)),
+        h("span", { class: "nm" }, r.name),
+        CAT_KEY[r.id] ? h("span", { class: "cat cat-" + CAT_KEY[r.id] }, CATEGORY[r.id]) : h("span"),
+        h("span", { class: "fbar" }, h("span", { class: "s-" + status(r), style: "width:" + pct(r.count) + "%" })),
+        h("span", { class: "mono fn" }, r.count + "/" + n),
+        h("span", { class: "badge " + STATUS_BADGE[status(r)][0] }, STATUS_BADGE[status(r)][1]))))));
+
+    const byType = {};
+    for (const p of posts) (byType[jobType(p)] = byType[jobType(p)] || []).push(p);
+    const types = Object.entries(byType).sort((a, b) => b[1].length - a[1].length);
+    kids.push(h("section", { class: "card" },
+      h("div", { class: "card-sec", style: "border-top:0" }, h("div", { class: "kicker" }, "By type of internship"),
+        h("p", { class: "note" }, "Different jobs look for different things. Sorted from the type you've saved most.")),
+      ...types.map(([name, list]) => {
+        const top = skillTally(have, list).slice(0, 6);
+        return h("div", { class: "card-sec" },
+          h("div", { style: "display:flex;justify-content:space-between;gap:8px" }, h("b", { style: "font-size:13.5px" }, name),
+            h("span", { class: "mono muted", style: "font-size:12px" }, list.length + (list.length === 1 ? " posting" : " postings"))),
+          h("div", { class: "chips" }, ...top.map(r => h("button", { type: "button", class: "chip", onclick: () => { if (SKILL_BY_ID[r.id]) openSkill(r.id); } },
+            statusIcon(status(r)), r.name, h("span", { class: "mono muted", style: "font-size:11px" }, r.count + "/" + list.length)))));
+      })));
+    kids.push(h("section", { class: "card" }, h("div", { class: "card-sec", style: "border-top:0" },
+      h("div", { class: "kicker" }, "Where to find more postings"),
+      h("p", { class: "note" }, "Handshake (GSU's job board) and Robinson career fairs · Big 4 and national firm careers pages (RSM, Grant Thornton, BDO, Crowe) · Atlanta CPA firms via the Georgia Society of CPAs · GSU groups: Beta Alpha Psi, Tau Alpha Chi, NABA, ALPFA, ASCEND."),
+      h("p", { class: "note" }, "Many firms fill next summer's internships in the fall of junior year. Busy-season internships run about January to April."))));
+    return [scroller("results", h("div", { class: "post-detail" }, ...kids))];
+  }
+
+  // ---------- Skills ----------
+  function openSkill(id) {
+    closeDialog();
+    ui.view = "skills"; ui.pane.skills = "center"; ui.openSkills.add(id);
+    render();
+    const el = document.getElementById("guide-" + id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function tagBox(key, inputId, placeholder, show) {
+    const items = state.profile[key];
+    const input = h("input", { type: "text", id: inputId, placeholder, "aria-label": placeholder,
+      onkeydown: e => {
+        if (e.key === "Enter" || e.key === ",") { e.preventDefault(); const v = e.target.value; e.target.value = ""; addTag(key, v); }
+        else if (e.key === "Backspace" && !e.target.value) {
+          const i = items.map((t, j) => [t, j]).filter(([t]) => !show || show(t)).map(([, j]) => j).pop();
+          if (i !== undefined) { items.splice(i, 1); commit(); }
+        }
+      },
+      onblur: e => { if (e.target.value.trim()) { const v = e.target.value; e.target.value = ""; addTag(key, v); } } });
+    return h("div", { class: "tags" }, ...items.map((t, i) => (show && !show(t)) ? null : h("span", { class: "tag" }, t,
+      h("button", { type: "button", "aria-label": "Remove " + t, onclick: () => { items.splice(i, 1); commit(); } }, icon("x", "sm")))), input);
+  }
+
+  function skillsView(have) {
+    const p = state.profile;
+    const gsuTaken = p.classes.filter(c => gsuCourseFor(c)).length;
+    const left = [scroller("mine",
+      h("div", { class: "side-sec" }, h("h3", null, "About you"),
+        h("label", { class: "field" }, "Name", h("input", { class: "input", id: "p-name", type: "text", value: p.name, onchange: e => { ensureOwn(); state.profile.name = e.target.value.trim(); commit(); } })),
+        h("div", { class: "form-grid" },
+          h("label", { class: "field" }, "Year", h("select", { class: "input", id: "p-year", onchange: e => { ensureOwn(); state.profile.year = e.target.value; commit(); } },
+            ...["Freshman", "Sophomore", "Junior", "Senior", "Graduate student"].map(y => h("option", { selected: y === p.year }, y)))),
+          h("label", { class: "field" }, "Graduation", h("input", { class: "input", id: "p-grad", type: "text", value: p.grad, placeholder: "Dec 2027", onchange: e => { ensureOwn(); state.profile.grad = e.target.value.trim(); commit(); } })))),
+      h("div", { class: "side-sec" }, h("h3", null, "My skills"),
+        tagBox("skills", "skillInput", "Add a skill, then Enter"),
+        h("p", { class: "note" }, "Or open any skill in the guide and tap \u201CI have this.\u201D")),
+      h("div", { class: "side-sec" }, h("h3", null, "Resume bullets"),
+        h("p", { class: "note" }, "Paste the bullets from your resume, one per line. Each posting then shows which ones to lead with and what to reword."),
+        (() => {
+          const ta = h("textarea", { class: "input", id: "p-resume", style: "min-height:150px;font-size:12.5px", placeholder: "Processed bi-weekly payroll for 6 staff\nTracked vendor invoices for 4 projects",
+            onchange: e => { ensureOwn(); state.profile.resume = e.target.value; commit(); } });
+          ta.value = p.resume;
+          return ta;
+        })()),
+      h("div", { class: "side-sec" }, h("h3", null, "Classes"),
+        h("p", { class: "note" }, gsuTaken + " GSU class" + (gsuTaken === 1 ? "" : "es") + " marked as taken. ",
+          h("button", { type: "button", style: "text-decoration:underline;text-underline-offset:2px", onclick: () => { ui.view = "plan"; ui.libFilter = "all"; ui.pane.plan = "left"; render(); } }, "Mark them in Plan"), "."),
+        h("span", { class: "field" }, h("span", null, "Other classes ", h("span", { class: "muted" }, "· transfer or not listed"))),
+        tagBox("classes", "classInput", "Add a class, then Enter", c => !gsuCourseFor(c))),
+      h("div", { class: "side-sec" }, h("h3", null, "Your data"),
+        h("p", { class: "note" }, "Everything saves in this browser only. Back up now and then, and restore the file to move to another device."),
+        h("div", { class: "acts" },
+          h("button", { type: "button", class: "btn sm", onclick: backup }, "Back up"),
+          h("button", { type: "button", class: "btn sm", onclick: restore }, "Restore"))))];
+
+    const center = [scroller("guide", h("div", { class: "guide" },
+      h("div", { style: "display:grid;gap:4px" }, h("span", { class: "kicker" }, "Skill guide"),
+        h("p", { class: "muted", style: "font-size:13px;max-width:70ch" }, "What each skill means, how to check yourself, and free places to learn it. Keep only the skills you could talk about in an interview.")),
+      ...STATUS_SECTIONS.map(([key, label]) => {
+        const ids = SKILLS.map(x => x.id).filter(id => shown(id, have[id] || "no") === key);
+        return ids.length ? h("section", { class: "year" },
+          h("div", { class: "status-head st-" + key }, statusIcon(key), h("span", null, label), h("span", { class: "cnt" }, ids.length)),
+          h("div", null, ...ids.map(id => skillCard(id, have)))) : null;
+      })))];
+
+    const studying = p.learning.filter(id => (have[id] || "no") !== "yes");
+    const right = [scroller("studying",
+      h("div", { class: "verdict" },
+        h("div", { class: "kicker" }, "Studying now"),
+        h("div", { class: "headline" }, studying.length ? studying.length + (studying.length === 1 ? " skill" : " skills") : "Nothing yet"),
+        h("div", { class: "detail" }, studying.length ? "Tap one to see where to learn it." : "Open a skill and tap “I'm learning this.”")),
+      studying.length ? h("div", { class: "checks" }, ...studying.map(id => h("button", { type: "button", class: "skill-line", onclick: () => openSkill(id) },
+        statusIcon("learning"), h("span", { class: "nm" }, SKILL_BY_ID[id].name)))) : null)];
+    return panes({ left, center, right });
+  }
+
+  const STATUS_SECTIONS = [["yes", "You have"], ["learning", "Studying"], ["partly", "Partly, from classes"], ["no", "Not yet"]];
+  const CATEGORY = {};
+  for (const g of GUIDE_GROUPS) for (const id of g.ids) CATEGORY[id] = g.name;
+  const STATUS_BADGE = { yes: ["ok-solid", "Have"], learning: ["primary", "Studying"], partly: ["warn", "Partly"], no: ["", "Not yet"] };
+  const CAT_KEY = {};
+  GUIDE_GROUPS.forEach((g, i) => { for (const id of g.ids) CAT_KEY[id] = ["acct", "soft", "people"][i]; });
+
+  function skillCard(id, have) {
+    const s = SKILL_BY_ID[id], info = GUIDE[id], base = have[id] || "no", v = shown(id, base);
+    const src = skillSources(state.profile, s);
+    const card = h("details", { class: "skill-card is-" + v, id: "guide-" + id, open: ui.openSkills.has(id) },
+      h("summary", null, statusIcon(v), h("span", { class: "nm" }, s.name),
+        h("span", { class: "cat cat-" + CAT_KEY[id] }, CATEGORY[id]),
+        h("span", { class: "badge " + STATUS_BADGE[v][0] }, STATUS_BADGE[v][1])),
+      h("div", { class: "skill-body" },
+        h("div", null, h("h4", null, "What it is"), h("p", null, info.what)),
+        h("div", null, h("h4", null, "You have it if"), h("p", null, info.check)),
+        h("div", null, h("h4", null, "How to learn it"), h("ul", null, ...info.learn.map(x => h("li", null, x)))),
+        LINKS[id] ? h("div", null, h("h4", null, "Free places to start"),
+          h("div", { class: "links" }, ...LINKS[id].map(([label, url]) => h("a", { href: url, target: "_blank", rel: "noopener" }, label, icon("external", "sm"))))) : null,
+        (src.tags.length || src.classes.length) ? h("p", { class: "note" },
+          "Counted because of " + [...src.tags.map(t => "“" + t + "”"), ...src.classes].join(", ") + ".") : null,
+        h("div", { class: "acts" },
+          src.tags.length
+            ? h("button", { class: "btn sm", type: "button", onclick: () => {
+                state.profile.skills = state.profile.skills.filter(t => !src.tags.includes(t)); commit();
+                toast("Removed " + s.name + " from your skills.");
+              } }, "I don't have this yet")
+            : h("button", { class: "btn sm primary", type: "button", onclick: () => { setLearning(id, false); addTag("skills", s.name); toast("Added " + s.name + " to your skills."); } }, icon("check"), "I have this"),
+          base !== "yes" ? h("button", { class: "btn sm", type: "button", "aria-pressed": String(isLearning(id)), onclick: () => {
+              const on = !isLearning(id); setLearning(id, on); commit();
+              toast(on ? "Added " + s.name + " to Studying now." : "Took " + s.name + " off Studying now.");
+            } }, icon("half"), isLearning(id) ? "Stop studying" : "I'm learning this") : null,
+          src.classes.length && src.tags.length ? h("span", { class: "note" }, "Your classes still count toward it.") : null)));
+    card.addEventListener("toggle", () => { if (card.open) ui.openSkills.add(id); else ui.openSkills.delete(id); });
+    return card;
+  }
+
+  // ---------- Summary ----------
+  function planText() {
+    const ctx = planContext(), terms = planTerms(), status = statusFn(ctx), v = planVerdict(ctx, terms, status), p = state.profile;
+    const early = earliestFinish();
+    const lines = [];
+    lines.push("Accounting B.B.A. plan" + (p.name ? " for " + p.name : "") + (p.grad ? ", graduating " + p.grad : ""));
+    lines.push("Status: " + v.headline + ".");
+    if (early && !early.done) lines.push("Earliest possible finish: " + termName(early.id) + (early.stretched ? " (with an 18-hour semester)" : "") + ".");
+    const done = COURSES.filter(c => ctx.taken.has(c.code)).map(c => c.code);
+    if (done.length) lines.push("", "Done or in progress: " + done.join(", "));
+    for (const t of terms) {
+      const codes = t.codes.filter(c => !ctx.taken.has(c));
+      if (!codes.length) continue;
+      lines.push("", termName(t.id) + " (" + termHours(t, ctx) + " hrs)");
+      for (const code of codes) lines.push("  " + code + "  " + COURSE_BY_CODE[code].title);
+    }
+    if (v.open.length) lines.push("", "Not planned yet: " + v.open.join(", "));
+    lines.push("", "Based on the " + CATALOG + ".");
+    return lines.join("\n");
+  }
+  function copyPlan() {
+    const text = planText();
+    const fallback = () => {
+      ui.dialog = { kind: "copy", live: false };
+      const ta = h("textarea", { class: "input", id: "copy-text", readonly: true, style: "min-height:260px;font-family:var(--font-mono);font-size:12px" });
+      dlg().replaceChildren(dialogHead(null, "Copy your plan", h("p", { class: "muted", style: "font-size:13px" }, "Copy this text and paste it into an email to your advisor.")),
+        h("div", { class: "dlg-sec" }, ta));
+      ta.value = text;
+      if (!dlg().open) dlg().showModal();
+      ta.focus(); ta.select();
+    };
+    try {
+      navigator.clipboard.writeText(text).then(() => toast("Copied. Paste it into an email to your advisor."), fallback);
+    } catch { fallback(); }
+  }
+
+  function summaryView(have) {
+    const ctx = planContext(), terms = planTerms(), status = statusFn(ctx), v = planVerdict(ctx, terms, status), p = state.profile;
+    const early = earliestFinish(), last = lastPlannedPos(ctx, terms);
+    const facts = [
+      ["Status", v.headline, null],
+      ["Planned through", last >= 0 ? termName(terms[last].id) : "Nothing planned yet", null],
+      ["Earliest possible", early ? (early.done ? "All required classes are done" : termName(early.id) + (early.stretched ? " (with an 18-hour semester)" : "")) : "More than 12 semesters out", null],
+      ["Graduation goal", p.grad || "Not set", null],
+    ];
+    const reqRows = REQ_GROUPS.filter(g => g.id !== "elective").map(g => {
+      const cs = COURSES.filter(c => c.req === g.id), open = cs.filter(c => status(c.code) === "open");
+      return h("div", { class: "sum-row" }, h("span", { class: "k", style: "display:flex;align-items:center;gap:7px" }, h("i", { class: "gdot grp-" + g.id }), g.name),
+        h("span", { class: "v" }, open.length ? "Not planned: " + open.map(c => c.code).join(", ") : "Done or planned"),
+        h("span", { class: "n" }, (cs.length - open.length) + "/" + cs.length));
+    });
+    const termBlocks = terms.map((t, pos) => {
+      const codes = t.codes.filter(c => !ctx.taken.has(c));
+      return h("div", { class: "sum-term" },
+        h("div", { class: "hd" }, h("span", null, termName(t.id)), h("span", { class: "mono muted", style: "font-weight:400;font-size:12px" }, codes.length + " classes · " + termHours(t, ctx) + "h")),
+        ...(codes.length ? codes.map(code => {
+          const c = COURSE_BY_CODE[code], iss = issuesFor(c, pos, ctx);
+          return h("div", { class: "ln" }, h("span", { class: "mono" }, code), h("span", null, c.title),
+            iss.hard.length ? h("span", { style: "color:var(--destructive);font-size:12px" }, iss.hard[0]) : h("span", { class: "mono muted", style: "font-size:12px" }, c.hrs + "h"));
+        }) : [h("span", { class: "muted", style: "font-size:13px" }, "Nothing planned")]));
+    });
+    const done = COURSES.filter(c => ctx.taken.has(c.code));
+    const byStatus = STATUSES.map(s => [STATUS_LABEL[s], state.postings.filter(x => x.status === s).length]).filter(([, n]) => n);
+    const gaps = {};
+    for (const post of state.postings) for (const s of analyze(post, have)) if (s.have !== "yes" && SKILL_BY_ID[s.id] && !have[s.id]) gaps[s.id] = (gaps[s.id] || 0) + 1;
+    const topGaps = Object.entries(gaps).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([id]) => SKILL_BY_ID[id].name);
+    return [scroller("summary", h("div", { class: "summary" },
+      h("div", { class: "summary-head" },
+        h("div", null, h("div", { class: "kicker" }, "Summary"),
+          h("h1", null, (p.name ? p.name + "'s " : "") + "Accounting B.B.A. plan"),
+          h("p", { class: "muted", style: "font-size:13px" }, [p.year, p.grad ? "graduating " + p.grad : null, "Georgia State University"].filter(Boolean).join(" · "))),
+        h("div", { class: "acts" },
+          h("button", { type: "button", class: "btn sm", onclick: backup }, "Back up"),
+          h("button", { type: "button", class: "btn sm", onclick: restore }, "Restore"),
+          h("button", { type: "button", class: "btn primary sm", onclick: copyPlan }, icon("copy"), "Copy for my advisor"))),
+      h("section", { class: "card" }, ...facts.map(([k, val]) => h("div", { class: "sum-row" }, h("span", { class: "k" }, k), h("span", { class: "v" }, val), h("span")))),
+      h("div", { class: "kicker", style: "margin-top:6px" }, "Requirements"),
+      h("section", { class: "card" }, ...reqRows),
+      h("div", { class: "kicker", style: "margin-top:6px" }, "Semesters"),
+      h("section", { class: "card" }, ...(termBlocks.length ? termBlocks : [h("div", { class: "sum-term" }, h("span", { class: "muted" }, "No semesters yet. Set them up in Plan."))])),
+      h("div", { class: "kicker", style: "margin-top:6px" }, "Done or in progress"),
+      h("section", { class: "card" }, h("div", { class: "sum-row" }, h("span", { class: "k" }, done.length + " classes"),
+        h("span", { class: "v" }, done.length ? done.map(c => c.code).join(", ") : "None marked yet"), h("span"))),
+      h("div", { class: "kicker", style: "margin-top:6px" }, "Internships"),
+      h("section", { class: "card" },
+        h("div", { class: "sum-row" }, h("span", { class: "k" }, state.postings.length + " postings"),
+          h("span", { class: "v" }, byStatus.length ? byStatus.map(([s, n]) => n + " " + s.toLowerCase()).join(" · ") : "None added yet"), h("span")),
+        h("div", { class: "sum-row" }, h("span", { class: "k" }, "Skills to work on"),
+          h("span", { class: "v" }, !state.postings.length ? "Add postings to see which skills they ask for" : topGaps.length ? topGaps.join(", ") : "Nothing missing from your postings"), h("span"))),
+      h("p", { class: "note" }, "Based on the " + CATALOG + ". Confirm the plan with a Robinson advisor.")))];
+  }
+
+  // ---------- Back up and restore ----------
+  // On a static site the plan lives only in this browser, so a file backup is the way to keep or move it
+  const inClaude = () => !!(window.claude && typeof window.claude.use === "function");
+  function backupText() {
+    const { example, ...data } = state;
+    return JSON.stringify({ app: "internship-ledger", version: 1, savedAt: new Date().toISOString(), ...data }, null, 2);
+  }
+  function backup() {
+    const text = backupText();
+    if (inClaude()) {
+      // Downloads don't work inside a Claude page, so hand over the text instead
+      ui.dialog = { kind: "backup", live: false };
+      const ta = h("textarea", { class: "input", id: "backup-text", readonly: true, style: "min-height:260px;font-family:var(--font-mono);font-size:11.5px" });
+      dlg().replaceChildren(dialogHead(null, "Your backup", h("p", { class: "muted", style: "font-size:13px" }, "Copy this text into a file named backup.json.")), h("div", { class: "dlg-sec" }, ta));
+      ta.value = text;
+      if (!dlg().open) dlg().showModal();
+      ta.focus(); ta.select();
+      return;
+    }
+    const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+    const a = h("a", { href: url, download: "internship-ledger-backup-" + new Date().toISOString().slice(0, 10) + ".json" });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast("Backup saved. Check your Downloads folder.");
+  }
+  function restore() {
+    const input = h("input", { type: "file", accept: "application/json,.json" });
+    input.addEventListener("change", () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        let next;
+        try { const raw = JSON.parse(reader.result); if (!raw || !raw.profile) throw new Error("not a backup"); next = normalize(raw); }
+        catch { toast("That file isn't an Internship Ledger backup."); return; }
+        ui.dialog = { kind: "restore", live: false };
+        dlg().classList.remove("palette");
+        const taken = next.profile.classes.length, posts = next.postings.length;
+        dlg().replaceChildren(
+          dialogHead(null, "Restore this backup?", h("p", { class: "muted", style: "font-size:13px" },
+            file.name + ": " + taken + " classes, " + next.plan.terms.length + " semesters, " + posts + " postings. This replaces everything in the app now.")),
+          h("div", { class: "dlg-foot" },
+            h("button", { type: "button", class: "btn ghost", onclick: closeDialog }, "Cancel"),
+            h("button", { type: "button", class: "btn primary", onclick: () => { state = next; closeDialog(); commit(); toast("Backup restored."); } }, "Replace my data")));
+        if (!dlg().open) dlg().showModal();
+      };
+      reader.readAsText(file);
+    });
+    input.click();
+  }
+
+  // ---------- Command palette (⌘K) ----------
+  function openPalette() {
+    ui.dialog = { kind: "palette", live: false };
+    const go = view => () => { ui.view = view; render(); };
+    const everything = [
+      { label: "Fill in remaining classes", hint: "Action", run: () => { ui.view = "plan"; fillIn(); } },
+      { label: "Add a posting", hint: "Action", run: () => openPostingForm(null) },
+      { label: "Add a term", hint: "Action", run: () => { addTerm(); ui.view = "plan"; commit(); } },
+      { label: "Copy plan for my advisor", hint: "Action", run: copyPlan },
+      { label: "Back up my data", hint: "Action", run: backup },
+      { label: "Restore from a backup", hint: "Action", run: restore },
+      ...VIEWS.map(v => ({ label: "Go to " + v.label, hint: "View", run: go(v.id) })),
+      ...COURSES.map(c => ({ label: c.code + " " + c.title, hint: "Class", run: () => { ui.view = "plan"; render(); openCourse(c.code); } })),
+      ...SKILLS.map(s => ({ label: s.name, hint: "Skill", run: () => openSkill(s.id) })),
+      ...state.postings.map(p => ({ label: (p.company || "Untitled posting") + (p.role ? " · " + p.role : ""), hint: "Posting",
+        run: () => { ui.view = "postings"; ui.postTab = "board"; render(); openPosting(p.id); } })),
+    ];
+    const input = h("input", { class: "input", id: "pal-q", type: "search", autocomplete: "off", placeholder: "Search classes, skills, postings, or actions…", "aria-label": "Search everything" });
+    const list = h("div", { class: "pal-list", role: "listbox", "aria-label": "Results" });
+    let items = [], sel = 0;
+    const mark = () => [...list.querySelectorAll(".pal-item")].forEach((el, i) => el.setAttribute("aria-selected", String(i === sel)));
+    const run = i => { const it = items[i]; if (!it) return; closeDialog(); it.run(); };
+    const draw = () => {
+      const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+      items = everything.filter(it => words.every(w => (it.label + " " + it.hint).toLowerCase().includes(w))).slice(0, 14);
+      sel = Math.min(sel, Math.max(items.length - 1, 0));
+      list.replaceChildren(...(items.length
+        ? items.map((it, i) => h("button", { type: "button", class: "pal-item", role: "option", "aria-selected": String(i === sel),
+            onmousemove: () => { if (sel !== i) { sel = i; mark(); } }, onclick: () => run(i) },
+            h("span", { class: "pal-label" }, it.label), h("span", { class: "pal-hint" }, it.hint)))
+        : [h("p", { class: "note", style: "padding:12px" }, "No matches.")]));
+    };
+    input.addEventListener("input", () => { sel = 0; draw(); });
+    input.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        sel = Math.max(0, Math.min(items.length - 1, sel + (e.key === "ArrowDown" ? 1 : -1)));
+        mark(); const el = list.querySelectorAll(".pal-item")[sel]; if (el) el.scrollIntoView({ block: "nearest" });
+      } else if (e.key === "Enter") { e.preventDefault(); run(sel); }
+    });
+    dlg().classList.add("palette");
+    dlg().replaceChildren(h("div", { class: "search pal-search" }, icon("search"), input), list);
+    draw();
+    if (!dlg().open) dlg().showModal();
+    input.focus();
+  }
+
+  // ---------- Wiring ----------
+  dlg().addEventListener("close", () => { ui.dialog = null; dlg().classList.remove("palette"); });
+  document.addEventListener("keydown", e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); if (ui.dialog && ui.dialog.kind === "palette") closeDialog(); else openPalette(); }
+  });
+  dlg().addEventListener("click", e => { if (e.target === dlg()) closeDialog(); });
+  document.getElementById("startOwn").addEventListener("click", () => {
+    state = starterState(); ui.view = "plan"; ui.libFilter = "all"; ui.pane.plan = "left"; commit();
+    toast("Started your own plan. First, mark the GSU classes you've taken.");
+  });
+
+
+  render();
+  initAccount();
+})();
+</script>
+
+</body>
+</html>
