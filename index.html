@@ -18,16 +18,19 @@
 <div class="app">
   <header class="topbar">
     <div class="brand" id="brand"></div>
+    <h1 class="view-title" id="viewTitle"></h1>
     <span class="vsep"></span>
     <div class="seg" id="views" role="group" aria-label="View"></div>
     <span class="spacer"></span>
     <span class="sync" id="saveState" data-state="loading">Loading…</span>
   </header>
   <div class="banner" id="exampleBanner" hidden>
-    <span>You're looking at <b>example data</b>. Nothing here is saved.</span>
+    <span class="wide-only">You're looking at <b>example data</b>. Nothing here is saved.</span>
+    <span class="narrow-only"><b>Example data.</b> Nothing is saved.</span>
     <button class="btn sm primary" id="startOwn" type="button">Start my own</button>
   </div>
   <div id="view" class="app" style="flex:1;min-height:0"></div>
+  <nav class="tabbar" id="tabbar" aria-label="Views"></nav>
 </div>
 <dialog class="dlg" id="dlg"></dialog>
 <div class="toast" id="toast" hidden></div>

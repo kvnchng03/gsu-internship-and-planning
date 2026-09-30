@@ -18,7 +18,8 @@ let error = "";
 const scrolled = new Set<string>();
 
 const anchor = (): Date => (ui.calFrom ? parseDay(ui.calFrom) : dayStart(new Date()));
-const mode = (): CalMode => ui.calMode || (ui.calMode = window.matchMedia("(max-width: 560px)").matches ? "day" : "week");
+const narrow = (): boolean => window.matchMedia("(max-width: 560px)").matches;
+const mode = (): CalMode => ui.calMode || (ui.calMode = narrow() ? "day" : "week");
 const rangeOf = (m: CalMode, a: Date) => { const days = visibleDays(m, a); return { days, from: days[0], to: addDays(days[days.length - 1], 1) }; };
 const keyOf = (m: CalMode, a: Date) => { const r = rangeOf(m, a); return isoDay(r.from) + "/" + isoDay(r.to); };
 
@@ -67,7 +68,7 @@ export function scheduleView(): HTMLElement[] {
   // Title like Google's: "October 2026", or "Sep – Oct 2026" when a week spans two months
   const first = days[0], last = days[days.length - 1];
   const title = m === "month" ? a.toLocaleDateString(undefined, { month: "long", year: "numeric" })
-    : m === "day" ? a.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+    : m === "day" ? a.toLocaleDateString(undefined, narrow() ? { weekday: "short", month: "short", day: "numeric", year: "numeric" } : { weekday: "long", month: "long", day: "numeric", year: "numeric" })
     : first.getMonth() === last.getMonth() ? first.toLocaleDateString(undefined, { month: "long", year: "numeric" })
     : first.toLocaleDateString(undefined, { month: "short" }) + " – " + last.toLocaleDateString(undefined, { month: "short", year: "numeric" });
 
@@ -76,7 +77,7 @@ export function scheduleView(): HTMLElement[] {
       ? h("button", { type: "button", class: "icon-btn", title: google ? "Updated " + fmtTime(google.at) + ". Refresh" : "Refresh", "aria-label": "Refresh Google Calendar", disabled: loading, onclick: () => void loadGoogle() },
           icon(loading ? "clock" : "refresh"))
       : h("button", { type: "button", class: "btn primary sm", disabled: loading, onclick: () => void loadGoogle().then(() => { if (!error) toast("Showing your Google Calendar for this visit."); }) },
-          icon("calendar"), loading ? "Connecting…" : "Show Google Calendar");
+          icon("calendar"), loading ? "Connecting…" : [h("span", { class: "wide-only" }, "Show "), "Google Calendar"]);
 
   const toolbar = h("div", { class: "gcal-bar" },
     h("button", { type: "button", class: "btn sm", onclick: () => go(today) }, "Today"),
@@ -84,9 +85,11 @@ export function scheduleView(): HTMLElement[] {
     h("button", { type: "button", class: "icon-btn", "aria-label": "Next", onclick: () => go(step(m, a, 1)) }, icon("chevron-right")),
     h("h2", { class: "gcal-title" }, title),
     h("span", { class: "spacer" }),
-    googleCtl,
+    // Phones: dates and arrows on the first line, the view switch and Google on the second
+    h("span", { class: "gcal-break" }),
     h("div", { class: "seg", role: "group", "aria-label": "View" }, ...MODES.map(([id, label]) =>
-      h("button", { type: "button", "aria-pressed": String(m === id), onclick: () => go(a, id) }, label))));
+      h("button", { type: "button", "aria-pressed": String(m === id), onclick: () => go(a, id) }, label))),
+    googleCtl);
 
   const main = m === "month" ? monthGrid(days, a, events, today) : timeGrid(days, events, today, m);
   return [toolbar, h("div", { class: "gcal-body" }, sidebar(a, today), h("main", { class: "gcal-main" },
@@ -160,7 +163,7 @@ function timeGrid(days: Date[], events: CalendarEvent[], today: Date, m: CalMode
   // Open scrolled to the morning, the way Google Calendar does
   if (!scrolled.has(key)) {
     scrolled.add(key);
-    requestAnimationFrame(() => { body.scrollTop = 7 * HOUR; });
+    requestAnimationFrame(() => { body.scrollTop = 7 * HOUR - 12; }); // a little above 7 AM so its label isn't cut in half
   }
   return [body];
 }

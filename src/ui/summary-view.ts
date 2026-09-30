@@ -46,6 +46,9 @@ export function copyPlan(): void {
   } catch { fallback(); }
 }
 
+/** Course codes as separate tags, easier to scan than a long comma list. */
+const codeList = (codes: string[]): HTMLElement => h("span", { class: "codes" }, ...codes.map(c => h("span", { class: "code-tag" }, c)));
+
 export function summaryView(have: HaveMap): HTMLElement[] {
   const ctx = planContext(), terms = planTerms(), status = statusFn(ctx), v = planVerdict(ctx, terms, status), p = state.profile;
   const early = earliestFinish(), last = lastPlannedPos(ctx, terms);
@@ -58,7 +61,7 @@ export function summaryView(have: HaveMap): HTMLElement[] {
   const reqRows = REQ_GROUPS.filter(g => g.id !== "elective").map(g => {
     const cs = COURSES.filter(c => c.req === g.id), open = cs.filter(c => status(c.code) === "open");
     return h("div", { class: "sum-row" }, h("span", { class: "k", style: "display:flex;align-items:center;gap:7px" }, h("i", { class: "gdot grp-" + g.id }), g.name),
-      h("span", { class: "v" }, open.length ? "Not planned: " + open.map(c => c.code).join(", ") : "Done or planned"),
+      h("span", { class: "v" }, open.length ? [h("span", { class: "v-lbl" }, "Still to place"), codeList(open.map(c => c.code))] : "Done or planned"),
       h("span", { class: "n" }, (cs.length - open.length) + "/" + cs.length));
   });
   const termBlocks = terms.map((t, pos) => {
@@ -92,7 +95,7 @@ export function summaryView(have: HaveMap): HTMLElement[] {
     h("section", { class: "card" }, ...(termBlocks.length ? termBlocks : [h("div", { class: "sum-term" }, h("span", { class: "muted" }, "No semesters yet. Set them up in Plan."))])),
     h("div", { class: "kicker", style: "margin-top:6px" }, "Done or in progress"),
     h("section", { class: "card" }, h("div", { class: "sum-row" }, h("span", { class: "k" }, done.length + " classes"),
-      h("span", { class: "v" }, done.length ? done.map(c => c.code).join(", ") : "None marked yet"), h("span"))),
+      h("span", { class: "v" }, done.length ? codeList(done.map(c => c.code)) : "None marked yet"), h("span"))),
     h("div", { class: "kicker", style: "margin-top:6px" }, "Internships"),
     h("section", { class: "card" },
       h("div", { class: "sum-row" }, h("span", { class: "k" }, state.postings.length + " postings"),

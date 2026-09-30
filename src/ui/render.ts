@@ -37,12 +37,17 @@ function renderTop(): void {
     byId("palBtn").before(h("button", { type: "button", class: "btn sm", id: "installBtn", title: "Install this app",
       onclick: async () => { await promptInstall(); render(); } }, icon("download"), h("span", { class: "lbl" }, "Install")));
   } else if (!canPromptInstall() && install) install.remove();
+  const pick = (v: ViewDef) => () => { ui.view = v.id; render(); };
+  // Computers switch views in the header; phones use the tab bar at the bottom and show the view's name up top
   byId("views").replaceChildren(...VIEWS.map(v =>
-    h("button", { type: "button", "aria-pressed": String(ui.view === v.id), onclick: () => { ui.view = v.id; render(); } },
+    h("button", { type: "button", "aria-pressed": String(ui.view === v.id), onclick: pick(v) },
       icon(v.icon), h("span", { class: "lbl" }, v.label))));
+  byId("tabbar").replaceChildren(...VIEWS.map(v =>
+    h("button", { type: "button", "aria-pressed": String(ui.view === v.id), onclick: pick(v) }, icon(v.icon, "lg"), v.label)));
+  byId("viewTitle").textContent = VIEWS.find(v => v.id === ui.view)?.label || "";
 }
 
-/** Library | main | side panes. On phones, one pane at a time with tabs at the bottom. */
+/** Library | main | side panes. On phones, one pane at a time, picked with tabs at the top. */
 export function panes(parts: Record<PaneId, Kid[]>): HTMLElement[] {
   const view = ui.view as "plan" | "skills";
   const tabs = VIEWS.find(x => x.id === view)?.tabs;
@@ -50,13 +55,13 @@ export function panes(parts: Record<PaneId, Kid[]>): HTMLElement[] {
   const show = ui.pane[view];
   const keys: PaneId[] = ["left", "center", "right"];
   return [
+    h("nav", { class: "pane-tabs", "aria-label": "Sections" }, h("div", { class: "seg" }, ...keys.map((k, i) =>
+      h("button", { type: "button", "aria-pressed": String(show === k), onclick: () => { ui.pane[view] = k; render(); } },
+        icon(tabs[i][1]), tabs[i][0])))),
     h("div", { class: "panes", "data-show": show },
       h("aside", { class: "pane side left", "aria-label": tabs[0][0] }, ...parts.left),
       h("main", { class: "pane center", "aria-label": tabs[1][0] }, ...parts.center),
       h("aside", { class: "pane side right", "aria-label": tabs[2][0] }, ...parts.right)),
-    h("nav", { class: "mobile-tabs", "aria-label": "Sections" }, ...keys.map((k, i) =>
-      h("button", { type: "button", "aria-pressed": String(show === k), onclick: () => { ui.pane[view] = k; render(); } },
-        icon(tabs[i][1], "lg"), tabs[i][0]))),
   ];
 }
 /** A scrolling area whose position survives redraws. */

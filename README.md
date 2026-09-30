@@ -26,9 +26,9 @@ The **Calendar** tab works like Google Calendar: day, week, and month views, a m
 It always shows your application deadlines (red when due within 3 days, amber within a week), and after you tap **Show Google Calendar**, your Google Calendar events alongside them.
 Nothing from your Google Calendar is saved in the app; it's read fresh each visit.
 
-## Calendar and reminders
+## Reminders and calendar sync
 
-Open **Internships → Calendar**.
+Open **Internships → Reminders** (the bell on phones).
 
 - **Add to Google Calendar:** each posting with a deadline has its own link. No sign-in needed.
 - **Download deadlines (.ics):** one file with every deadline, for Google, Apple, or Outlook calendars.

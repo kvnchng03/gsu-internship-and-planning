@@ -102,11 +102,11 @@ function libRow(c: Course, ctx: PlanContext, terms: Term[], status: StatusOf): H
     type: "button", class: "icon-btn", title: "Add to " + termName(focus), "aria-label": "Add " + c.code + " to " + termName(focus),
     onclick: (e: MouseEvent) => { e.stopPropagation(); place(c.code, focus); commit(); toast("Added " + c.code + " to " + termName(focus) + "."); },
   }, icon("plus"));
-  const meta = [h("span", { class: "mono" }, c.hrs + "h")];
-  if (st !== "done" && UNLOCKS[c.code] >= 2) meta.push(h("span", null, "unlocks ", h("span", { class: "mono" }, UNLOCKS[c.code])));
+  const meta = [h("span", null, c.hrs + " hrs")];
+  if (st !== "done" && UNLOCKS[c.code] >= 2) meta.push(h("span", { title: "Classes that need this one first" }, "unlocks " + UNLOCKS[c.code]));
   if (st === "open") {
     const need = (c.pre || []).filter(p => !ctx.taken.has(p)).length + (c.any || []).filter(a => !a.some(x => ctx.taken.has(x))).length;
-    if (need) meta.push(h("span", null, "needs ", h("span", { class: "mono" }, need)));
+    if (need) meta.push(h("span", { class: "needs" }, "needs " + need + (need === 1 ? " class" : " classes") + " first"));
   }
   if (c.req === "elective") meta.push(h("span", null, "optional"));
   return h("div", { class: "lib-row grp-" + c.req + (st !== "open" ? " on" : ""), role: "button", tabindex: "0", onclick: () => openCourse(c.code), onkeydown: keyActivate(() => openCourse(c.code)),

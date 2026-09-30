@@ -76,7 +76,6 @@ export function icon(name: string, cls?: string): SVGSVGElement {
   return svg;
 }
 export const STATUS_ICON: Record<Shown, string> = { yes: "check", partly: "partly", learning: "half", no: "dashed" };
-export const STATUS_TEXT: Record<Shown, string> = { yes: "have", partly: "partly", learning: "learning", no: "missing" };
 /** Badge style and label for each skill status. */
 export const STATUS_BADGE: Record<Shown, [cls: string, label: string]> = { yes: ["ok-solid", "Have"], learning: ["primary", "Studying"], partly: ["warn", "Partly"], no: ["", "Not yet"] };
 export function statusIcon(v: Shown): SVGSVGElement { return icon(STATUS_ICON[v] || "dashed", "s-" + v); }

@@ -1,5 +1,5 @@
 // Internships view: the application board, one posting's details, resume help, and results across postings
-import type { Kid, Posting, SkillHit, Status } from "../types";
+import type { Kid, Posting, Shown, SkillHit, Status } from "../types";
 import { CATEGORY, CAT_KEY, LINKS, SKILL_BY_ID } from "../data/skills";
 import { STATUSES, STATUS_KEY, STATUS_LABEL } from "../data/statuses";
 import { boardOrder, dueInfo, jobType, matchOf, setStatus, skillTally, togglePriority, type Due, type Tally } from "../lib/postings";
@@ -8,9 +8,11 @@ import { openCalendar } from "./calendar-dialog";
 import { resumeAdvice, setLearning, shown, type HaveMap } from "../lib/skills";
 import { commit, state, ui } from "../lib/store";
 import { closeDialog, openPosting, openPostingForm } from "./dialogs";
-import { STATUS_BADGE, STATUS_TEXT, fmt, h, icon, keyActivate, statusIcon, toast } from "./dom";
+import { STATUS_BADGE, fmt, h, icon, keyActivate, statusIcon, toast } from "./dom";
 import { armLater, render, scroller } from "./render";
 import { openSkill } from "./skills-view";
+
+const SKILL_GROUPS: [Shown, string][] = [["yes", "You have"], ["learning", "Studying"], ["partly", "Partly, from classes"], ["no", "Missing"]];
 
 function resumeSection(skills: SkillHit[], have: HaveMap): HTMLElement {
   const clip = (t: string) => t.length > 120 ? t.slice(0, 117) + "…" : t;
@@ -49,8 +51,8 @@ export function postingsView(have: HaveMap): HTMLElement[] {
       h("span", null, h("b", { class: "mono" }, working), " working on"),
       h("span", { class: attention.some(p => dueInfo(p)?.level !== "soon") ? "hot" : "" }, h("b", { class: "mono" }, attention.length), " due soon")),
     h("span", { class: "spacer" }),
-    h("button", { type: "button", class: "btn sm", onclick: openCalendar, title: "Calendar, reminders, and alerts" }, icon("calendar"), h("span", { class: "lbl" }, "Calendar")),
-    h("button", { type: "button", class: "btn primary sm", onclick: () => openPostingForm(null) }, icon("plus"), "Add a posting"));
+    h("button", { type: "button", class: "btn sm", onclick: openCalendar, title: "Deadline reminders and calendar sync", "aria-label": "Reminders" }, icon("bell"), h("span", { class: "lbl" }, "Reminders")),
+    h("button", { type: "button", class: "btn primary sm", onclick: () => openPostingForm(null) }, icon("plus"), "Add", h("span", { class: "wide-only" }, " a posting")));
   if (!posts.length) {
     return [bar, h("main", { class: "pane center solo", style: "flex:1" }, scroller("board-empty", h("div", { class: "empty-state" },
       icon("briefcase", "lg"), h("h3", null, "No postings yet"),
@@ -136,10 +138,16 @@ export function postingCard(p: Posting, have: HaveMap): HTMLElement {
         h("span", { class: "big" }, fmt(m.score) + "/" + m.total),
         h("div", { style: "display:grid;gap:4px" }, h("span", { class: "kicker" }, "Skills matched"),
           h("div", { class: "ticks", "aria-hidden": "true" }, ...skills.map(s => h("span", { class: "tick " + view(s), title: s.name }))))),
-      h("div", null, ...skills.map(s => h("button", {
-        type: "button", class: "skill-line", title: SKILL_BY_ID[s.id] ? "Open in the skill guide" : null,
-        onclick: () => { if (SKILL_BY_ID[s.id]) openSkill(s.id); },
-      }, statusIcon(view(s)), h("span", { class: "nm" }, s.name), h("span", { class: "st" }, STATUS_TEXT[view(s)]))))));
+      // One short list per status, so what's missing doesn't hide among what the student already has
+      ...SKILL_GROUPS.map(([key, label]) => {
+        const list = skills.filter(s => view(s) === key);
+        return list.length ? h("div", { class: "skill-group" },
+          h("div", { class: "skill-group-h s-" + key }, label, h("span", { class: "cnt" }, list.length)),
+          ...list.map(s => h("button", {
+            type: "button", class: "skill-line", title: SKILL_BY_ID[s.id] ? "Open in the skill guide" : null,
+            onclick: () => { if (SKILL_BY_ID[s.id]) openSkill(s.id); },
+          }, statusIcon(key), h("span", { class: "nm" }, s.name)))) : null;
+      })));
   } else {
     secs.push(h("div", { class: "card-sec" }, h("p", { class: "muted" }, p.text.trim()
       ? "No skills from the accounting list turned up in this text."
@@ -213,7 +221,11 @@ function resultsView(have: HaveMap): HTMLElement[] {
     })));
   kids.push(h("section", { class: "card" }, h("div", { class: "card-sec", style: "border-top:0" },
     h("div", { class: "kicker" }, "Where to find more postings"),
-    h("p", { class: "note" }, "Handshake (GSU's job board) and Robinson career fairs · Big 4 and national firm careers pages (RSM, Grant Thornton, BDO, Crowe) · Atlanta CPA firms via the Georgia Society of CPAs · GSU groups: Beta Alpha Psi, Tau Alpha Chi, NABA, ALPFA, ASCEND."),
+    h("ul", { class: "plain-list" },
+      h("li", null, h("b", null, "Handshake"), " (GSU's job board) and Robinson career fairs"),
+      h("li", null, h("b", null, "Firm careers pages:"), " the Big 4, RSM, Grant Thornton, BDO, Crowe"),
+      h("li", null, h("b", null, "Atlanta CPA firms"), " through the Georgia Society of CPAs"),
+      h("li", null, h("b", null, "GSU groups:"), " Beta Alpha Psi, Tau Alpha Chi, NABA, ALPFA, ASCEND")),
     h("p", { class: "note" }, "Many firms fill next summer's internships in the fall of junior year. Busy-season internships run about January to April."))));
   return [scroller("results", h("div", { class: "post-detail" }, ...kids))];
 }
