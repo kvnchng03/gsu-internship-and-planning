@@ -12,6 +12,27 @@ A free planner for Georgia State accounting (B.B.A.) students.
 - **Skills:** a guide to each accounting skill, how to check yourself, and free places to learn it.
 - **Summary:** a one-page plan you can copy and send to your advisor.
 
+## Development
+
+The app is TypeScript, built with Vite.
+
+```bash
+npm install
+npm run dev        # local dev server
+npm test           # logic tests (planner, deadlines, duplicate links, skill matching)
+npm run typecheck  # strict TypeScript check
+npm run build      # type-check and build to dist/
+```
+
+Every push to `main` runs the checks and tests, then deploys to GitHub Pages.
+
+### Layout
+
+- `src/data/` holds the GSU course catalog, the skill guide, and application statuses.
+- `src/lib/` holds the logic: the class planner, skill matching, postings, and saved data.
+- `src/ui/` holds the views (Plan, Internships, Skills, Summary), dialogs, and the ⌘K palette.
+- `tests/` holds the logic tests.
+
 ## Your data
 
 Everything is saved in your browser only.
