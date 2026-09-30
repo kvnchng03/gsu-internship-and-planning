@@ -23,6 +23,13 @@ The site is a web app you can install, and it works offline after the first visi
 On a phone, the five views sit in a tab bar at the bottom.
 Swipe left or right to move between them.
 
+## Tiếng Việt
+
+The **Tiếng Việt** button in the header (**VI** on phones) switches the app's own words to Vietnamese.
+Class codes and names, skill names, the skill guide, and posting text stay in English, since that's how they appear at school and in job postings.
+The plan copied for an advisor and deadlines synced to a calendar stay in English too.
+Wording lives in `src/lib/vi.ts`, and a test fails if any on-screen text is missing its Vietnamese.
+
 ## Calendar view
 
 The **Calendar** tab works like Google Calendar: day, week, and month views, a mini month to jump to any date, and a red line for the current time.

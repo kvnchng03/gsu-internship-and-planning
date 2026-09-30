@@ -2,6 +2,7 @@
 import type { Course, PlanContext, Term } from "../types";
 import { ALIASES, BEFORE_LAST, COURSE_BY_CODE, DEPTH, MAJOR, REQUIRED, UNLOCKS, codesIn, courseLabel, gsuCourseFor } from "../data/courses";
 import { addTag, commit, state } from "./store";
+import { t } from "./i18n";
 
 // Terms are "YYYY-N" with N = 1 spring, 2 summer, 3 fall. As a number, a term is year * 3 + (N - 1).
 const SEASONS = ["Spring", "Summer", "Fall"];
@@ -65,25 +66,26 @@ export function planContext(): PlanContext {
 }
 
 export const listOf = (xs: string[]): string =>
-  xs.length <= 2 ? xs.join(" and ") : xs.slice(0, -1).join(", ") + ", and " + xs[xs.length - 1];
+  xs.length < 2 ? xs.join("") : xs.length === 2 ? t("{a} and {b}", { a: xs[0], b: xs[1] }) : t("{a}, and {b}", { a: xs.slice(0, -1).join(", "), b: xs[xs.length - 1] });
 
-export interface Issues { hard: string[]; soft: string[] }
+/** Hard problems, as words to show and as kinds for the planner to reason about (the words change with the language). */
+export interface Issues { hard: string[]; soft: string[]; kinds: ("pre" | "co" | "major")[] }
 /** Problems with taking a course in the term at position pos. Hard ones break a rule; soft ones are advice. */
 export function issuesFor(c: Course, pos: number, ctx: PlanContext): Issues {
   const before = (code: string) => ctx.taken.has(code) || (ctx.where[code] !== undefined && ctx.where[code] < pos);
   const byThen = (code: string) => ctx.taken.has(code) || (ctx.where[code] !== undefined && ctx.where[code] <= pos);
-  const hard: string[] = [], soft: string[] = [];
+  const hard: string[] = [], soft: string[] = [], kinds: Issues["kinds"] = [];
   const missing = (c.pre || []).filter(x => !before(x));
-  for (const alts of c.any || []) if (!alts.some(before)) missing.push(alts.join(" or "));
-  if (missing.length) hard.push("Needs " + listOf(missing) + " first");
+  for (const alts of c.any || []) if (!alts.some(before)) missing.push(alts.join(" " + t("or") + " "));
+  if (missing.length) { hard.push(t("Needs {list} first", { list: listOf(missing) })); kinds.push("pre"); }
   const co = (c.co || []).filter(x => !byThen(x));
-  if (co.length) hard.push("Take with " + listOf(co));
+  if (co.length) { hard.push(t("Take with {list}", { list: listOf(co) })); kinds.push("co"); }
   if (c.majorCount) {
     const n = MAJOR.filter(before).length;
-    if (n < c.majorCount) hard.push("Needs " + c.majorCount + " accounting major classes first (you'd have " + n + ")");
+    if (n < c.majorCount) { hard.push(t("Needs {n} accounting major classes first (you'd have {have})", { n: c.majorCount, have: n })); kinds.push("major"); }
   }
-  if (c.last && pos < ctx.lastPos) soft.push("Best in your final semester");
-  return { hard, soft };
+  if (c.last && pos < ctx.lastPos) soft.push(t("Best in your final semester"));
+  return { hard, soft, kinds };
 }
 export function termHours(t: Term, ctx: PlanContext): number {
   return t.codes.filter(c => !ctx.taken.has(c)).reduce((n, c) => n + COURSE_BY_CODE[c].hrs, 0);
@@ -115,7 +117,7 @@ export function autoPlan(): AutoPlanResult {
       let hrs = termHours(t, ctx);
       const cap = isSummer(t.id) ? summer : full;
       const ready = pending
-        .filter(code => !issuesFor(COURSE_BY_CODE[code], pos, ctx).hard.some(x => !x.startsWith("Take with")))
+        .filter(code => !issuesFor(COURSE_BY_CODE[code], pos, ctx).kinds.some(kind => kind !== "co"))
         .filter(code => COURSE_BY_CODE[code].last ? pos === final : !(pos === final && BEFORE_LAST.has(code)))
         .sort((a, b) => DEPTH[b] - DEPTH[a] || UNLOCKS[b] - UNLOCKS[a] || a.localeCompare(b));
       for (const code of ready) {
@@ -150,13 +152,13 @@ export function planVerdict(ctx: PlanContext, terms: Term[], status: (code: stri
     if (iss.hard.length) bad.push({ code, msg: iss.hard[0] });
   }));
   if (bad.length) {
-    return { open, bad, headline: bad.length + (bad.length === 1 ? " class is" : " classes are") + " out of order", detail: "Planned before a prerequisite is done.", tone: "bad" };
+    return { open, bad, headline: bad.length === 1 ? t("1 class is out of order") : t("{n} classes are out of order", { n: bad.length }), detail: t("Planned before a prerequisite is done."), tone: "bad" };
   }
   if (open.length) {
-    return { open, bad, headline: open.length + (open.length === 1 ? " class" : " classes") + " left to place",
-      detail: terms.length ? "Place them yourself, or let the planner fill them in." : "Set up your semesters to start.", tone: "" };
+    return { open, bad, headline: open.length === 1 ? t("1 class left to place") : t("{n} classes left to place", { n: open.length }),
+      detail: terms.length ? t("Place them yourself, or let the planner fill them in.") : t("Set up your semesters to start."), tone: "" };
   }
-  return { open, bad, headline: "Every requirement is covered", detail: "Done or planned, in an order that works.", tone: "ok" };
+  return { open, bad, headline: t("Every requirement is covered"), detail: t("Done or planned, in an order that works."), tone: "ok" };
 }
 
 export type Earliest = { done: true } | { done?: false; id: string; stretched: boolean } | null;
@@ -187,14 +189,14 @@ export interface GoalCheck { kind: "ok" | "bad" | "open"; label: string; n: stri
 export function goalCheck(): GoalCheck | null {
   const early = earliestFinish(), goal = gradTermIx(state.profile.grad);
   if (!early || early.done) return null;
-  const name = termName(early.id) + (early.stretched ? " (needs an 18-hour semester)" : "");
+  const name = early.stretched ? t("{term} (needs an 18-hour semester)", { term: termName(early.id) }) : termName(early.id);
   if (goal == null) {
-    return { kind: "open", label: "Earliest possible finish", n: shortTerm(early.id),
-      items: [["Set your graduation date under Skills to check it.", null], ["Earliest possible: " + name, null]] };
+    return { kind: "open", label: t("Earliest possible finish"), n: shortTerm(early.id),
+      items: [[t("Set your graduation date under Skills to check it."), null], [t("Earliest possible: {term}", { term: name }), null]] };
   }
   const ok = termIndex(early.id) <= goal;
-  return { kind: ok ? "ok" : "bad", label: "Graduate by " + termName(termAt(goal).id), n: shortTerm(early.id),
-    items: [[(ok ? "Reachable. " : "Not reachable at these loads. ") + "Earliest possible: " + name + ".", null]] };
+  return { kind: ok ? "ok" : "bad", label: t("Graduate by {term}", { term: termName(termAt(goal).id) }), n: shortTerm(early.id),
+    items: [[ok ? t("Reachable. Earliest possible: {term}.", { term: name }) : t("Not reachable at these loads. Earliest possible: {term}.", { term: name }), null]] };
 }
 
 export function lastPlannedPos(ctx: PlanContext, terms: Term[]): number {

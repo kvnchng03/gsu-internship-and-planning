@@ -2,6 +2,7 @@
 // Turned on by setting VITE_GOOGLE_CLIENT_ID at build time; without it the option stays hidden.
 import type { CalEvent } from "../lib/calendar";
 import { nextDay } from "../lib/calendar";
+import { t } from "../lib/i18n";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 const SCOPE = "https://www.googleapis.com/auth/calendar.events";
@@ -25,7 +26,7 @@ function loadGis(): Promise<void> {
     s.src = "https://accounts.google.com/gsi/client";
     s.async = true;
     s.onload = () => resolve();
-    s.onerror = () => { gisLoaded = null; reject(new Error("Couldn't reach Google. Check your connection.")); };
+    s.onerror = () => { gisLoaded = null; reject(new Error(t("Couldn't reach Google. Check your connection."))); };
     document.head.append(s);
   });
   return gisLoaded;
@@ -38,20 +39,20 @@ export const googleConnected = (): boolean => !!cached && cached.expires > Date.
 /** Asks Google for a short-lived access token. Google shows its own sign-in and consent screens. */
 async function getToken(): Promise<string> {
   if (cached && cached.expires > Date.now() + 60_000) return cached.token;
-  if (!CLIENT_ID) throw new Error("Google Calendar sync isn't set up for this site.");
+  if (!CLIENT_ID) throw new Error(t("Google Calendar sync isn't set up for this site."));
   await loadGis();
   const oauth = window.google?.accounts.oauth2;
-  if (!oauth) throw new Error("Couldn't load Google sign-in.");
+  if (!oauth) throw new Error(t("Couldn't load Google sign-in."));
   return new Promise((resolve, reject) => {
     const client = oauth.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPE,
       callback: r => {
-        if (!r.access_token) { reject(new Error(r.error_description || r.error || "Google sign-in didn't finish.")); return; }
+        if (!r.access_token) { reject(new Error(r.error_description || r.error || t("Google sign-in didn't finish."))); return; }
         cached = { token: r.access_token, expires: Date.now() + (r.expires_in || 3600) * 1000 };
         resolve(r.access_token);
       },
-      error_callback: e => reject(new Error(e.type === "popup_closed" ? "Google sign-in was closed." : "Google sign-in was blocked. Allow pop-ups and try again.")),
+      error_callback: e => reject(new Error(e.type === "popup_closed" ? t("Google sign-in was closed.") : t("Google sign-in was blocked. Allow pop-ups and try again."))),
     });
     client.requestAccessToken();
   });
@@ -72,7 +73,7 @@ async function api<T>(token: string, url: string, init: RequestInit = {}): Promi
   if (res.status === 401) cached = null; // expired or revoked: the next try signs in again
   if (!res.ok) {
     const body = await res.json().catch(() => null) as { error?: { message?: string } } | null;
-    throw new Error("Google Calendar said: " + (body?.error?.message || res.status + " " + res.statusText));
+    throw new Error(t("Google Calendar said: {message}", { message: body?.error?.message || res.status + " " + res.statusText }));
   }
   return (res.status === 204 ? undefined : await res.json()) as T;
 }

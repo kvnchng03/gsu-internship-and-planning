@@ -12,6 +12,7 @@ import { VIEWS, render } from "./render";
 import { openSkill } from "./skills-view";
 import { copyPlan } from "./summary-view";
 import { openCalendar } from "./calendar-dialog";
+import { t } from "../lib/i18n";
 
 interface Command { label: string; hint: string; run: () => void }
 
@@ -19,21 +20,21 @@ export function openPalette(): void {
   ui.dialog = { kind: "palette", live: false };
   const go = (view: ViewId) => () => { ui.view = view; render(); };
   const everything: Command[] = [
-    { label: "Fill in remaining classes", hint: "Action", run: () => { ui.view = "plan"; fillIn(); } },
-    { label: "Add a posting", hint: "Action", run: () => openPostingForm(null) },
-    { label: "Add a term", hint: "Action", run: () => { addTerm(); ui.view = "plan"; commit(); } },
-    { label: "Copy plan for my advisor", hint: "Action", run: copyPlan },
-    { label: "Deadlines & reminders (calendar, alerts, install)", hint: "Action", run: openCalendar },
-    { label: "Back up my data", hint: "Action", run: backup },
-    { label: "Restore from a backup", hint: "Action", run: restore },
-    ...VIEWS.map(v => ({ label: "Go to " + v.label, hint: "View", run: go(v.id) })),
-    ...COURSES.map(c => ({ label: c.code + " " + c.title, hint: "Class", run: () => { ui.view = "plan"; render(); openCourse(c.code); } })),
-    ...SKILLS.map(s => ({ label: s.name, hint: "Skill", run: () => openSkill(s.id) })),
-    ...state.postings.map(p => ({ label: (p.company || "Untitled posting") + (p.role ? " · " + p.role : ""), hint: "Posting",
+    { label: t("Fill in remaining classes"), hint: t("Action"), run: () => { ui.view = "plan"; fillIn(); } },
+    { label: t("Add a posting"), hint: t("Action"), run: () => openPostingForm(null) },
+    { label: t("Add a term"), hint: t("Action"), run: () => { addTerm(); ui.view = "plan"; commit(); } },
+    { label: t("Copy plan for my advisor"), hint: t("Action"), run: copyPlan },
+    { label: t("Deadlines & reminders (calendar, alerts, install)"), hint: t("Action"), run: openCalendar },
+    { label: t("Back up my data"), hint: t("Action"), run: backup },
+    { label: t("Restore from a backup"), hint: t("Action"), run: restore },
+    ...VIEWS.map(v => ({ label: t("Go to {view}", { view: t(v.label) }), hint: t("Page"), run: go(v.id) })),
+    ...COURSES.map(c => ({ label: c.code + " " + c.title, hint: t("Class"), run: () => { ui.view = "plan"; render(); openCourse(c.code); } })),
+    ...SKILLS.map(s => ({ label: s.name, hint: t("Skill"), run: () => openSkill(s.id) })),
+    ...state.postings.map(p => ({ label: (p.company || t("Untitled posting")) + (p.role ? " · " + p.role : ""), hint: t("Posting"),
       run: () => { ui.view = "postings"; ui.postTab = "board"; render(); openPosting(p.id); } })),
   ];
-  const input = h("input", { class: "input", id: "pal-q", type: "search", autocomplete: "off", placeholder: "Search classes, skills, postings, or actions…", "aria-label": "Search everything" });
-  const list = h("div", { class: "pal-list", role: "listbox", "aria-label": "Results" });
+  const input = h("input", { class: "input", id: "pal-q", type: "search", autocomplete: "off", placeholder: t("Search classes, skills, postings, or actions…"), "aria-label": t("Search everything") });
+  const list = h("div", { class: "pal-list", role: "listbox", "aria-label": t("Results") });
   let items: Command[] = [], sel = 0;
   const mark = () => [...list.querySelectorAll(".pal-item")].forEach((el, i) => el.setAttribute("aria-selected", String(i === sel)));
   const run = (i: number) => { const it = items[i]; if (!it) return; closeDialog(); it.run(); };
@@ -45,7 +46,7 @@ export function openPalette(): void {
       ? items.map((it, i) => h("button", { type: "button", class: "pal-item", role: "option", "aria-selected": String(i === sel),
           onmousemove: () => { if (sel !== i) { sel = i; mark(); } }, onclick: () => run(i) },
           h("span", { class: "pal-label" }, it.label), h("span", { class: "pal-hint" }, it.hint)))
-      : [h("p", { class: "note", style: "padding:12px" }, "No matches.")]));
+      : [h("p", { class: "note", style: "padding:12px" }, t("No matches."))]));
   };
   input.addEventListener("input", () => { sel = 0; draw(); });
   input.addEventListener("keydown", e => {

@@ -9,6 +9,7 @@ import { commit, state, ui } from "../lib/store";
 import { openCourse } from "./dialogs";
 import { h, icon, keyActivate, toast, type Attrs } from "./dom";
 import { armLater, panes, render, scroller } from "./render";
+import { k, t } from "../lib/i18n";
 
 type StatusOf = (code: string) => CourseStatus;
 type CheckItem = [text: string, run: (() => void) | null];
@@ -39,7 +40,7 @@ function rail(ctx: PlanContext, status: StatusOf): HTMLElement {
     const cs = COURSES.filter(c => c.req === g.id).map(c => status(c.code));
     const d = cs.filter(x => x === "done").length, pl = cs.filter(x => x === "planned").length, b = cs.filter(x => x === "bad").length;
     return h("button", {
-      type: "button", class: "rg grp-" + g.id, title: SHORT_GROUP[g.id] + ": " + d + " done, " + (pl + b) + " planned, " + (cs.length - d - pl - b) + " not planned",
+      type: "button", class: "rg grp-" + g.id, title: SHORT_GROUP[g.id] + ": " + t("{done} done, {planned} planned, {open} not planned", { done: d, planned: pl + b, open: cs.length - d - pl - b }),
       onclick: () => {
         ui.libFilter = "all"; ui.libQuery = ""; ui.pane.plan = "left"; render();
         const el = document.getElementById("lib-g-" + g.id);
@@ -55,14 +56,14 @@ function rail(ctx: PlanContext, status: StatusOf): HTMLElement {
   return h("div", { class: "rail" },
     h("div", { class: "rail-groups" }, ...groups),
     h("div", { class: "rail-stats" },
-      h("span", null, h("b", { class: "mono" }, done), " done"),
-      h("span", null, h("b", { class: "mono" }, planned), " planned"),
-      early && !early.done ? h("span", { style: "display:inline-flex;align-items:center;gap:5px", title: "Earliest you could graduate" }, icon("cap", "sm"), "Earliest finish ", h("b", { class: "mono" }, shortTerm(early.id))) : null));
+      h("span", null, h("b", { class: "mono" }, done), " " + t("done")),
+      h("span", null, h("b", { class: "mono" }, planned), " " + t("planned")),
+      early && !early.done ? h("span", { style: "display:inline-flex;align-items:center;gap:5px", title: t("Earliest you could graduate") }, icon("cap", "sm"), t("Earliest finish") + " ", h("b", { class: "mono" }, shortTerm(early.id))) : null));
 }
 
 function libraryPane(ctx: PlanContext, terms: Term[], status: StatusOf): Kid[] {
   const q = ui.libQuery.trim().toLowerCase();
-  const FILTERS: [typeof ui.libFilter, string][] = [["all", "All"], ["open", "To place"], ["elective", "Electives"], ["done", "Done"]];
+  const FILTERS: [typeof ui.libFilter, string][] = [["all", k("All")], ["open", k("To place")], ["elective", k("Electives")], ["done", k("Done")]];
   const match = (c: Course) => {
     if (q && !(c.code.toLowerCase().includes(q) || c.title.toLowerCase().includes(q))) return false;
     const st = status(c.code);
@@ -82,13 +83,13 @@ function libraryPane(ctx: PlanContext, terms: Term[], status: StatusOf): Kid[] {
   return [
     h("div", { class: "pane-head" },
       h("div", { class: "search" }, icon("search"),
-        h("input", { class: "input", id: "lib-q", type: "search", placeholder: "Search classes…", value: ui.libQuery, "aria-label": "Search classes",
+        h("input", { class: "input", id: "lib-q", type: "search", placeholder: t("Search classes…"), value: ui.libQuery, "aria-label": t("Search classes"),
           oninput: (e: Event) => { ui.libQuery = (e.target as HTMLInputElement).value; render(); } })),
-      h("div", { class: "toggles", role: "group", "aria-label": "Show" }, ...FILTERS.map(([k, l]) =>
-        h("button", { type: "button", class: "toggle", "aria-pressed": String(ui.libFilter === k), onclick: () => { ui.libFilter = k; render(); } }, l)))),
-    scroller("lib", ...(rows.length ? rows : [h("p", { class: "empty-state" }, "Nothing matches.")])),
-    h("div", { class: "pane-foot" }, h("span", { class: "mono" }, shown), " of ", h("span", { class: "mono" }, COURSES.length),
-      ui.focusTerm ? " · + adds to " + termName(ui.focusTerm) : ""),
+      h("div", { class: "toggles", role: "group", "aria-label": t("Show") }, ...FILTERS.map(([key, l]) =>
+        h("button", { type: "button", class: "toggle", "aria-pressed": String(ui.libFilter === key), onclick: () => { ui.libFilter = key; render(); } }, t(l))))),
+    scroller("lib", ...(rows.length ? rows : [h("p", { class: "empty-state" }, t("Nothing matches."))])),
+    h("div", { class: "pane-foot" }, t("{shown} of {total}", { shown, total: COURSES.length }),
+      ui.focusTerm ? " · " + t("+ adds to {term}", { term: termName(ui.focusTerm) }) : ""),
   ];
 }
 
@@ -96,19 +97,19 @@ function libRow(c: Course, ctx: PlanContext, terms: Term[], status: StatusOf): H
   const st = status(c.code), pos = ctx.where[c.code];
   let end: HTMLElement | null = null;
   const focus = ui.focusTerm;
-  if (st === "done") end = h("span", { class: "badge ok" }, icon("check", "sm"), "Done");
+  if (st === "done") end = h("span", { class: "badge ok" }, icon("check", "sm"), t("Done"));
   else if (pos !== undefined) end = h("span", { class: "badge mono" + (st === "bad" ? " bad" : "") }, shortTerm(terms[pos].id));
   else if (focus) end = h("button", {
-    type: "button", class: "icon-btn", title: "Add to " + termName(focus), "aria-label": "Add " + c.code + " to " + termName(focus),
-    onclick: (e: MouseEvent) => { e.stopPropagation(); place(c.code, focus); commit(); toast("Added " + c.code + " to " + termName(focus) + "."); },
+    type: "button", class: "icon-btn", title: t("Add to {term}", { term: termName(focus) }), "aria-label": t("Add {code} to {term}", { code: c.code, term: termName(focus) }),
+    onclick: (e: MouseEvent) => { e.stopPropagation(); place(c.code, focus); commit(); toast(t("Added {code} to {term}.", { code: c.code, term: termName(focus) })); },
   }, icon("plus"));
-  const meta = [h("span", null, c.hrs + " hrs")];
-  if (st !== "done" && UNLOCKS[c.code] >= 2) meta.push(h("span", { title: "Classes that need this one first" }, "unlocks " + UNLOCKS[c.code]));
+  const meta = [h("span", null, t("{n} hrs", { n: c.hrs }))];
+  if (st !== "done" && UNLOCKS[c.code] >= 2) meta.push(h("span", { title: t("Classes that need this one first") }, t("unlocks {n}", { n: UNLOCKS[c.code] })));
   if (st === "open") {
     const need = (c.pre || []).filter(p => !ctx.taken.has(p)).length + (c.any || []).filter(a => !a.some(x => ctx.taken.has(x))).length;
-    if (need) meta.push(h("span", { class: "needs" }, "needs " + need + (need === 1 ? " class" : " classes") + " first"));
+    if (need) meta.push(h("span", { class: "needs" }, need === 1 ? t("needs 1 class first") : t("needs {n} classes first", { n: need })));
   }
-  if (c.req === "elective") meta.push(h("span", null, "optional"));
+  if (c.req === "elective") meta.push(h("span", null, t("optional")));
   return h("div", { class: "lib-row grp-" + c.req + (st !== "open" ? " on" : ""), role: "button", tabindex: "0", onclick: () => openCourse(c.code), onkeydown: keyActivate(() => openCourse(c.code)),
     ...(st === "done" ? {} : dragProps(c.code)) },
     h("div", { class: "l1" }, h("span", { class: "code" }, c.code), h("span", { class: "title" }, c.title)),
@@ -120,9 +121,9 @@ function boardPane(ctx: PlanContext, terms: Term[]): Kid[] {
   if (!terms.length) {
     return [scroller("board", h("div", { class: "empty-state" },
       icon("cap", "lg"),
-      h("h3", null, "Plan your semesters"),
-      h("p", null, "Add every semester from now until graduation, then fill them with classes."),
-      h("button", { class: "btn primary", type: "button", onclick: setUpSemesters }, "Set up my semesters")))];
+      h("h3", null, t("Plan your semesters")),
+      h("p", null, t("Add every semester from now until graduation, then fill them with classes.")),
+      h("button", { class: "btn primary", type: "button", onclick: setUpSemesters }, t("Set up my semesters"))))];
   }
   // Academic years (fall through summer) become a thin labeled line, not a header row
   const years = new Map<number, [Term, number][]>();
@@ -131,13 +132,13 @@ function boardPane(ctx: PlanContext, terms: Term[]): Kid[] {
     ...[...years].map(([y, list]) => h("section", { class: "year" },
       h("div", { class: "year-label" }, y + "–" + String(y + 1).slice(2)),
       h("div", { class: "terms" }, ...list.map(([t, pos]) => termCard(t, pos, ctx, terms))))),
-    h("button", { type: "button", class: "btn dashed sm", onclick: () => { addTerm(); commit(); } }, icon("plus"), "Add term")))];
+    h("button", { type: "button", class: "btn dashed sm", onclick: () => { addTerm(); commit(); } }, icon("plus"), t("Add term"))))];
 }
 
-function termCard(t: Term, pos: number, ctx: PlanContext, terms: Term[]): HTMLElement {
-  const codes = t.codes.filter(c => !ctx.taken.has(c));
-  const hrs = termHours(t, ctx), heavy = hrs > (isSummer(t.id) ? 9 : 18);
-  const focused = ui.focusTerm === t.id, armKey = "term-" + t.id, armed = ui.armed === armKey;
+function termCard(term: Term, pos: number, ctx: PlanContext, terms: Term[]): HTMLElement {
+  const codes = term.codes.filter(c => !ctx.taken.has(c));
+  const hrs = termHours(term, ctx), heavy = hrs > (isSummer(term.id) ? 9 : 18);
+  const focused = ui.focusTerm === term.id, armKey = "term-" + term.id, armed = ui.armed === armKey;
   const rows = codes.map(code => {
     const c = COURSE_BY_CODE[code], iss = issuesFor(c, pos, ctx);
     const note = [...iss.hard, ...iss.soft].join(". ");
@@ -151,42 +152,42 @@ function termCard(t: Term, pos: number, ctx: PlanContext, terms: Term[]): HTMLEl
       h("span", { class: "title" }, c.title),
       iss.hard.length ? h("span", { class: "warn" }, icon("alert", "sm"), h("span", { class: "sr-only" }, note))
         : iss.soft.length ? h("span", { class: "muted", style: "display:inline-flex" }, icon("info", "sm"), h("span", { class: "sr-only" }, note)) : null,
-      h("button", { type: "button", class: "icon-btn rm", "aria-label": "Remove " + c.code, onclick: (e: MouseEvent) => { e.stopPropagation(); unplace(code); commit(); } }, icon("trash", "sm")));
+      h("button", { type: "button", class: "icon-btn rm", "aria-label": t("Remove {code}", { code: c.code }), onclick: (e: MouseEvent) => { e.stopPropagation(); unplace(code); commit(); } }, icon("trash", "sm")));
   });
   return h("section", {
-    class: "term" + (focused ? " focus" : "") + (heavy ? " over" : ""), "aria-label": termName(t.id),
-    onclick: () => { if (ui.focusTerm !== t.id) { ui.focusTerm = t.id; render(); } },
+    class: "term" + (focused ? " focus" : "") + (heavy ? " over" : ""), "aria-label": termName(term.id),
+    onclick: () => { if (ui.focusTerm !== term.id) { ui.focusTerm = term.id; render(); } },
     ondragover: (e: DragEvent) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = "move"; (e.currentTarget as HTMLElement).classList.add("drop"); },
     ondragleave: (e: DragEvent) => { const el = e.currentTarget as HTMLElement; if (!el.contains(e.relatedTarget as Node | null)) el.classList.remove("drop"); },
     ondrop: (e: DragEvent) => {
       e.preventDefault(); (e.currentTarget as HTMLElement).classList.remove("drop");
       const code = e.dataTransfer?.getData("text/plain") || "";
       if (!COURSE_BY_CODE[code] || planContext().taken.has(code)) return;
-      place(code, t.id); ui.focusTerm = t.id; commit();
-      toast(code + " planned for " + termName(t.id) + ".");
+      place(code, term.id); ui.focusTerm = term.id; commit();
+      toast(t("{code} planned for {term}.", { code, term: termName(term.id) }));
     },
   },
     h("header", { class: "term-head" },
-      h("h3", null, termName(t.id)),
-      h("span", { class: "term-meta" + (heavy ? " over" : ""), title: heavy ? "More than " + (isSummer(t.id) ? 9 : 18) + " hours is a very heavy load." : codes.length + " classes, " + hrs + " credit hours" },
+      h("h3", null, termName(term.id)),
+      h("span", { class: "term-meta" + (heavy ? " over" : ""), title: heavy ? t("More than {n} hours is a very heavy load.", { n: isSummer(term.id) ? 9 : 18 }) : t("{n} classes, {hrs} credit hours", { n: codes.length, hrs }) },
         icon("book", "sm"), h("span", { class: "mono" }, codes.length), h("span", { style: "opacity:.4" }, "·"), h("span", { class: "mono" }, hrs + "h")),
       h("button", {
         type: "button", class: "icon-btn", style: armed ? "color:var(--destructive)" : null,
-        title: armed ? "Tap again to remove this term" : "Remove term", "aria-label": armed ? "Confirm removing " + termName(t.id) : "Remove " + termName(t.id),
+        title: armed ? t("Tap again to remove this term") : t("Remove term"), "aria-label": armed ? t("Confirm removing {term}", { term: termName(term.id) }) : t("Remove {term}", { term: termName(term.id) }),
         onclick: (e: MouseEvent) => {
           e.stopPropagation();
           if (codes.length && !armed) { ui.armed = armKey; render(); armLater(armKey); return; }
-          ui.armed = null; state.plan.terms = terms.filter(x => x.id !== t.id); commit();
+          ui.armed = null; state.plan.terms = terms.filter(x => x.id !== term.id); commit();
         },
       }, icon(armed ? "alert" : "trash", "sm"))),
-    h("div", { class: "term-body" }, ...(rows.length ? rows : [h("p", { class: "empty-slot" }, focused ? "Drag a class here, or use + in the library" : "Empty")])));
+    h("div", { class: "term-body" }, ...(rows.length ? rows : [h("p", { class: "empty-slot" }, focused ? t("Drag a class here, or use + in the library") : t("Empty"))])));
 }
 
 function checkRow(key: string, kind: "ok" | "bad" | "open", label: Kid, n: string, items: CheckItem[]): HTMLDetailsElement {
   const ic = icon(kind === "ok" ? "check" : kind === "bad" ? "alert" : "dashed", kind === "ok" ? "i-ok" : kind === "bad" ? "i-bad" : "i-open");
   const d = h("details", { class: "check", open: items.length > 0 && ui.openChecks.has(key) },
     h("summary", null, ic, h("span", { class: "lbl" }, label), n ? h("span", { class: "n" }, n) : null),
-    items.length ? h("div", { class: "check-body" }, ...items.map(([t, fn]) => fn ? h("button", { type: "button", onclick: fn }, t) : h("span", null, t))) : null);
+    items.length ? h("div", { class: "check-body" }, ...items.map(([text, fn]) => fn ? h("button", { type: "button", onclick: fn }, text) : h("span", null, text))) : null);
   d.addEventListener("toggle", () => { if (d.open) ui.openChecks.add(key); else ui.openChecks.delete(key); });
   return d;
 }
@@ -205,31 +206,34 @@ function checksPane(ctx: PlanContext, terms: Term[], status: StatusOf): Kid[] {
       open.map((c): CheckItem => [c.code + " " + c.title, () => openCourse(c.code)]));
   }));
   checks.push(
-    checkRow("prereq", bad.length ? "bad" : "ok", "Prerequisites in order", bad.length ? String(bad.length) : "",
+    checkRow("prereq", bad.length ? "bad" : "ok", t("Prerequisites in order"), bad.length ? String(bad.length) : "",
       bad.map((b): CheckItem => [b.code + ": " + b.msg, () => openCourse(b.code)])),
-    checkRow("cap", capOk ? "ok" : "open", "Capstone in the last semester", "",
-      capOk ? [] : [["BUSA 4980 and BUSA 4990 go last", () => openCourse(cap.code)]]),
-    checkRow("load", heavy.length ? "bad" : "ok", "No semester over 18 hours", heavy.length ? String(heavy.length) : "",
-      heavy.map((t): CheckItem => [termName(t.id) + ": " + termHours(t, ctx) + " hours", () => { ui.focusTerm = t.id; ui.pane.plan = "center"; render(); }])));
+    checkRow("cap", capOk ? "ok" : "open", t("Capstone in the last semester"), "",
+      capOk ? [] : [[t("BUSA 4980 and BUSA 4990 go last"), () => openCourse(cap.code)]]),
+    checkRow("load", heavy.length ? "bad" : "ok", t("No semester over 18 hours"), heavy.length ? String(heavy.length) : "",
+      heavy.map((term): CheckItem => [termName(term.id) + ": " + t("{n} hours", { n: termHours(term, ctx) }), () => { ui.focusTerm = term.id; ui.pane.plan = "center"; render(); }])));
 
   return [scroller("checks",
     h("div", { class: "verdict" },
-      h("div", { class: "kicker" }, "Can I graduate?"),
+      h("div", { class: "kicker" }, t("Can I graduate?")),
       h("div", { class: "headline " + tone }, headline),
       h("div", { class: "detail" }, detail)),
     h("div", { class: "checks" }, ...checks),
     h("div", { class: "side-block" },
       terms.length
-        ? h("button", { class: "btn primary", type: "button", onclick: fillIn, title: "Puts each class in the earliest semester its prerequisites allow, at up to 15 hours (6 in summer)" }, icon("sparkles"), "Fill in remaining classes")
-        : h("button", { class: "btn primary", type: "button", onclick: setUpSemesters }, "Set up my semesters"),
-      h("p", { class: "note" }, "Based on the " + CATALOG + ". Confirm your plan with a Robinson advisor.")))];
+        ? h("button", { class: "btn primary", type: "button", onclick: fillIn, title: t("Puts each class in the earliest semester its prerequisites allow, at up to 15 hours (6 in summer)") }, icon("sparkles"), t("Fill in remaining classes"))
+        : h("button", { class: "btn primary", type: "button", onclick: setUpSemesters }, t("Set up my semesters")),
+      h("p", { class: "note" }, t("Based on the {catalog}. Confirm your plan with a Robinson advisor.", { catalog: CATALOG }))))];
 }
 
-export function setUpSemesters(): void { setupTerms(); commit(); toast("Added your semesters through " + (state.profile.grad || "graduation") + "."); }
+export function setUpSemesters(): void {
+  setupTerms(); commit();
+  toast(state.profile.grad ? t("Added your semesters through {grad}.", { grad: state.profile.grad }) : t("Added your semesters through graduation."));
+}
 export function fillIn(): void {
   const r = autoPlan(); commit();
   toast(r.left.length
-    ? "Couldn't fit " + listOf(r.left) + ", even at 18 hours a semester. Add a term, or check the red notes."
-    : r.stretched ? "Everything fits, but only with some 18-hour semesters. Another term would lighten the load."
-    : "Filled in your remaining required classes.");
+    ? t("Couldn't fit {list}, even at 18 hours a semester. Add a term, or check the red notes.", { list: listOf(r.left) })
+    : r.stretched ? t("Everything fits, but only with some 18-hour semesters. Another term would lighten the load.")
+    : t("Filled in your remaining required classes."));
 }

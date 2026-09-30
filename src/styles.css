@@ -82,6 +82,9 @@ h1, h2, h3, h4, p { margin: 0; }
 .sync::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--muted-foreground); }
 .sync[data-state="account"]::before { background: var(--primary); }
 .sync[data-state="error"]::before { background: var(--destructive); }
+/* Language switch: the other language's name in itself, shortened to EN / VI on phones */
+.lang-btn { font-weight: 600; }
+.lang-btn .short { display: none; }
 .banner { flex: none; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 6px 12px; font-size: 13px; background: var(--muted); border-bottom: 1px solid var(--border); flex-wrap: wrap; text-align: center; }
 
 .rail { flex: none; display: flex; align-items: center; gap: 24px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
@@ -543,7 +546,8 @@ button.chip:hover { background: var(--accent); }
 @media (max-width: 560px) {
   /* Keep the header on one line: the view's name, search, the save dot */
   .topbar { gap: 8px; padding: 0 12px; }
-  #palBtn .kbd, .btn .lbl, .wide-only { display: none; }
+  #palBtn .kbd, .btn .lbl, .wide-only, .lang-btn .long { display: none; }
+  .lang-btn .short { display: inline; }
   .narrow-only { display: inline; }
   .sync { font-size: 0; gap: 0; }
   .banner { gap: 8px 12px; }
@@ -651,6 +655,7 @@ button.chip:hover { background: var(--accent); }
 
   /* Calendar */
   .tg-hour, .tg-gutter-label { font-size: 12px; }
+  .tg-gutter-label { font-size: 11px; white-space: nowrap; padding-right: 4px; }
   .tg-date .dow { font-size: 12px; }
   .gcal-main { --gutter: 50px; }
   .chip-ev { font-size: 12px; line-height: 20px; padding: 1px 5px; }

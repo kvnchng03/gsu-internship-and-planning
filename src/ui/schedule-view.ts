@@ -8,9 +8,10 @@ import { h, icon, toast } from "./dom";
 import { fetchGoogleEvents, googleConnected, googleSyncAvailable, type CalendarEvent } from "./google-calendar";
 import { render, scroller } from "./render";
 import { onSwipe } from "./swipe";
+import { fmtDate, k, t } from "../lib/i18n";
 
 const HOUR = 48; // pixels per hour in day and week views
-const MODES: [CalMode, string][] = [["day", "Day"], ["week", "Week"], ["month", "Month"]];
+const MODES: [CalMode, string][] = [["day", k("Day")], ["week", k("Week")], ["month", k("Month")]];
 
 // What Google returned for the days on screen; kept for this visit only
 let google: { key: string; events: CalendarEvent[]; at: Date } | null = null;
@@ -28,7 +29,7 @@ async function loadGoogle(): Promise<void> {
   const m = mode(), a = anchor(), { from, to } = rangeOf(m, a), key = keyOf(m, a);
   loading = true; error = ""; render();
   try { google = { key, events: await fetchGoogleEvents(from, to), at: new Date() }; }
-  catch (e) { error = e instanceof Error ? e.message : "Couldn't load Google Calendar."; }
+  catch (e) { error = e instanceof Error ? e.message : t("Couldn't load Google Calendar."); }
   loading = false;
   render();
 }
@@ -42,7 +43,7 @@ function go(to: Date, m: CalMode = mode()): void {
 function deadlineEvents(): CalendarEvent[] {
   return state.postings.filter(p => p.deadline).map(p => {
     const start = parseDay(p.deadline);
-    return { id: "dl-" + p.id, title: "Apply: " + (p.company || "Internship"), start, end: addDays(start, 1), allDay: true, source: "deadline" as const, postingId: p.id, level: dueInfo(p)?.level || "" };
+    return { id: "dl-" + p.id, title: t("Apply: {name}", { name: p.company || t("Internship") }), start, end: addDays(start, 1), allDay: true, source: "deadline" as const, postingId: p.id, level: dueInfo(p)?.level || "" };
   });
 }
 
@@ -68,28 +69,29 @@ export function scheduleView(): HTMLElement[] {
 
   // Title like Google's: "October 2026", or "Sep – Oct 2026" when a week spans two months
   const first = days[0], last = days[days.length - 1];
-  const title = m === "month" ? a.toLocaleDateString(undefined, { month: "long", year: "numeric" })
-    : m === "day" ? a.toLocaleDateString(undefined, narrow() ? { weekday: "short", month: "short", day: "numeric", year: "numeric" } : { weekday: "long", month: "long", day: "numeric", year: "numeric" })
-    : first.getMonth() === last.getMonth() ? first.toLocaleDateString(undefined, { month: "long", year: "numeric" })
-    : first.toLocaleDateString(undefined, { month: "short" }) + " – " + last.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+  const title = m === "month" ? fmtDate(a, { month: "long", year: "numeric" })
+    // Phones show the weekday in the week strip, so the title is just the date
+    : m === "day" ? fmtDate(a, narrow() ? { month: "short", day: "numeric", year: "numeric" } : { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+    : first.getMonth() === last.getMonth() ? fmtDate(first, { month: "long", year: "numeric" })
+    : fmtDate(first, { month: "short" }) + " – " + fmtDate(last, { month: "short", year: "numeric" });
 
   const googleCtl = !googleSyncAvailable() ? null
     : googleConnected() || google
-      ? h("button", { type: "button", class: "icon-btn", title: google ? "Updated " + fmtTime(google.at) + ". Refresh" : "Refresh", "aria-label": "Refresh Google Calendar", disabled: loading, onclick: () => void loadGoogle() },
+      ? h("button", { type: "button", class: "icon-btn", title: google ? t("Updated {time}. Refresh", { time: fmtTime(google.at) }) : t("Refresh"), "aria-label": t("Refresh Google Calendar"), disabled: loading, onclick: () => void loadGoogle() },
           icon(loading ? "clock" : "refresh"))
-      : h("button", { type: "button", class: "btn primary sm", disabled: loading, onclick: () => void loadGoogle().then(() => { if (!error) toast("Showing your Google Calendar for this visit."); }) },
-          icon("calendar"), loading ? "Connecting…" : [h("span", { class: "wide-only" }, "Show "), "Google Calendar"]);
+      : h("button", { type: "button", class: "btn primary sm", disabled: loading, onclick: () => void loadGoogle().then(() => { if (!error) toast(t("Showing your Google Calendar for this visit.")); }) },
+          icon("calendar"), loading ? t("Connecting…") : [h("span", { class: "wide-only" }, t("Show Google Calendar")), h("span", { class: "narrow-only" }, "Google")]);
 
   const toolbar = h("div", { class: "gcal-bar" },
-    h("button", { type: "button", class: "btn sm", onclick: () => go(today) }, "Today"),
-    h("button", { type: "button", class: "icon-btn", "aria-label": "Previous", onclick: () => go(step(m, a, -1)) }, icon("chevron-left")),
-    h("button", { type: "button", class: "icon-btn", "aria-label": "Next", onclick: () => go(step(m, a, 1)) }, icon("chevron-right")),
+    h("button", { type: "button", class: "btn sm", onclick: () => go(today) }, t("Today")),
+    h("button", { type: "button", class: "icon-btn", "aria-label": t("Previous"), onclick: () => go(step(m, a, -1)) }, icon("chevron-left")),
+    h("button", { type: "button", class: "icon-btn", "aria-label": t("Next"), onclick: () => go(step(m, a, 1)) }, icon("chevron-right")),
     h("h2", { class: "gcal-title" }, title),
     h("span", { class: "spacer" }),
     // Phones: dates and arrows on the first line, the view switch and Google on the second
     h("span", { class: "gcal-break" }),
-    h("div", { class: "seg", role: "group", "aria-label": "View" }, ...MODES.map(([id, label]) =>
-      h("button", { type: "button", "aria-pressed": String(m === id), onclick: () => go(a, id) }, label))),
+    h("div", { class: "seg", role: "group", "aria-label": t("View") }, ...MODES.map(([id, label]) =>
+      h("button", { type: "button", "aria-pressed": String(m === id), onclick: () => go(a, id) }, t(label)))),
     googleCtl);
 
   const main = m === "month" ? monthGrid(days, a, events, today) : timeGrid(days, events, today, m);
@@ -107,11 +109,11 @@ onSwipe("calendar-week", dir => { go(addDays(anchor(), 7 * dir)); return true; }
 /** Day view on phones: the week around the day, to tap any date in it (like Apple Calendar's strip). */
 function weekStrip(a: Date, today: Date): HTMLElement {
   const busy = new Set(deadlineEvents().map(e => isoDay(e.start)));
-  return h("div", { class: "wk-strip", "data-swipe": "calendar-week", role: "group", "aria-label": "Week" },
+  return h("div", { class: "wk-strip", "data-swipe": "calendar-week", role: "group", "aria-label": t("Week") },
     ...visibleDays("week", a).map(d => h("button", {
       type: "button", "aria-label": d.toDateString(), "aria-pressed": String(sameDay(d, a)), onclick: () => go(d),
       class: "wk-day" + (sameDay(d, a) ? " sel" : "") + (sameDay(d, today) ? " today" : "") + (busy.has(isoDay(d)) ? " busy" : ""),
-    }, h("span", { class: "dow" }, d.toLocaleDateString(undefined, { weekday: "narrow" })), h("span", { class: "num" }, String(d.getDate())))));
+    }, h("span", { class: "dow" }, fmtDate(d, { weekday: "narrow" })), h("span", { class: "num" }, String(d.getDate())))));
 }
 
 function sidebar(a: Date, today: Date): HTMLElement {
@@ -122,23 +124,23 @@ function sidebar(a: Date, today: Date): HTMLElement {
   return h("aside", { class: "gcal-side" },
     h("div", { class: "mini" },
       h("div", { class: "mini-head" },
-        h("b", null, month.toLocaleDateString(undefined, { month: "long", year: "numeric" })),
+        h("b", null, fmtDate(month, { month: "long", year: "numeric" })),
         h("span", { class: "spacer" }),
-        h("button", { type: "button", class: "icon-btn", "aria-label": "Previous month", onclick: () => go(new Date(month.getFullYear(), month.getMonth() - 1, 1)) }, icon("chevron-left", "sm")),
-        h("button", { type: "button", class: "icon-btn", "aria-label": "Next month", onclick: () => go(new Date(month.getFullYear(), month.getMonth() + 1, 1)) }, icon("chevron-right", "sm"))),
+        h("button", { type: "button", class: "icon-btn", "aria-label": t("Previous month"), onclick: () => go(new Date(month.getFullYear(), month.getMonth() - 1, 1)) }, icon("chevron-left", "sm")),
+        h("button", { type: "button", class: "icon-btn", "aria-label": t("Next month"), onclick: () => go(new Date(month.getFullYear(), month.getMonth() + 1, 1)) }, icon("chevron-right", "sm"))),
       h("div", { class: "mini-grid" },
-        ...["S", "M", "T", "W", "T", "F", "S"].map(d => h("span", { class: "mini-dow" }, d)),
+        ...visibleDays("week", month).map(d => h("span", { class: "mini-dow" }, fmtDate(d, { weekday: "narrow" }))),
         ...cells.map(d => h("button", {
           type: "button", "aria-label": d.toDateString(),
           class: "mini-day" + (d.getMonth() !== month.getMonth() ? " out" : "") + (sameDay(d, today) ? " today" : "") + (selected.has(isoDay(d)) ? " sel" : "") + (busy.has(isoDay(d)) ? " busy" : ""),
           onclick: () => go(d),
         }, String(d.getDate()))))),
     h("div", { class: "legend-cal" },
-      h("div", { class: "kicker" }, "Calendars"),
-      h("div", { class: "lg" }, h("i", { class: "sw dl" }), "Application deadlines"),
+      h("div", { class: "kicker" }, t("Calendars")),
+      h("div", { class: "lg" }, h("i", { class: "sw dl" }), t("Application deadlines")),
       googleSyncAvailable() ? h("div", { class: "lg" }, h("i", { class: "sw g" }), "Google Calendar",
-        h("span", { class: "muted", style: "margin-left:auto;font-size:11px" }, googleConnected() || google ? "shown" : "not connected")) : null,
-      h("p", { class: "note" }, "Red is due within 3 days or overdue, amber within a week. Nothing from Google Calendar is saved in the app.")));
+        h("span", { class: "muted", style: "margin-left:auto;font-size:11px" }, googleConnected() || google ? t("shown") : t("not connected"))) : null,
+      h("p", { class: "note" }, t("Red is due within 3 days or overdue, amber within a week. Nothing from Google Calendar is saved in the app."))));
 }
 
 function timeGrid(days: Date[], events: CalendarEvent[], today: Date, m: CalMode): HTMLElement[] {
@@ -146,11 +148,11 @@ function timeGrid(days: Date[], events: CalendarEvent[], today: Date, m: CalMode
   const head = h("div", { class: "tg-head", style: "grid-template-columns:" + cols },
     h("span"),
     ...days.map(d => h("button", { type: "button", class: "tg-date" + (sameDay(d, today) ? " today" : ""), onclick: () => go(d, "day") },
-      h("span", { class: "dow" }, d.toLocaleDateString(undefined, { weekday: "short" })),
+      h("span", { class: "dow" }, fmtDate(d, { weekday: "short" })),
       h("span", { class: "num" }, String(d.getDate())))));
   const allDayFor = (d: Date) => events.filter(e => (e.allDay || e.end.getTime() - e.start.getTime() >= 864e5) && e.start < addDays(d, 1) && e.end > d);
   const allDay = h("div", { class: "tg-allday", style: "grid-template-columns:" + cols },
-    h("span", { class: "tg-gutter-label" }, "all-day"),
+    h("span", { class: "tg-gutter-label" }, t("all-day")),
     ...days.map(d => h("div", { class: "tg-allday-cell" }, ...allDayFor(d).map(e => chip(e, false)))));
 
   const hours = h("div", { class: "tg-hours" }, ...Array.from({ length: 24 }, (_, i) =>
@@ -187,7 +189,7 @@ function timeGrid(days: Date[], events: CalendarEvent[], today: Date, m: CalMode
 }
 
 function monthGrid(days: Date[], a: Date, events: CalendarEvent[], today: Date): HTMLElement[] {
-  const head = h("div", { class: "mg-head" }, ...days.slice(0, 7).map(d => h("span", null, d.toLocaleDateString(undefined, { weekday: "short" }))));
+  const head = h("div", { class: "mg-head" }, ...days.slice(0, 7).map(d => h("span", null, fmtDate(d, { weekday: "short" }))));
   const cells = days.map(d => {
     const dayEvents = events
       .filter(e => e.start < addDays(d, 1) && e.end > d)
@@ -195,9 +197,9 @@ function monthGrid(days: Date[], a: Date, events: CalendarEvent[], today: Date):
     const shown = dayEvents.slice(0, 3), more = dayEvents.length - shown.length;
     return h("div", { class: "mg-cell" + (d.getMonth() !== a.getMonth() ? " out" : "") },
       h("button", { type: "button", class: "mg-num" + (sameDay(d, today) ? " today" : ""), onclick: () => go(d, "day"), "aria-label": d.toDateString() },
-        d.getDate() === 1 ? d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : String(d.getDate())),
+        d.getDate() === 1 ? fmtDate(d, { month: "short", day: "numeric" }) : String(d.getDate())),
       ...shown.map(e => chip(e, true)),
-      more > 0 ? h("button", { type: "button", class: "mg-more", onclick: () => go(d, "day") }, more + " more") : null);
+      more > 0 ? h("button", { type: "button", class: "mg-more", onclick: () => go(d, "day") }, t("{n} more", { n: more })) : null);
   });
   return [head, scroller("gcal-month", h("div", { class: "mg-grid" }, ...cells))];
 }

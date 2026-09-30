@@ -3,6 +3,7 @@ import { commit, normalize, setState, state, ui } from "../lib/store";
 import type { State } from "../types";
 import { closeDialog, dialogHead, dlg } from "./dialogs";
 import { h, toast } from "./dom";
+import { t } from "../lib/i18n";
 
 export function backupText(): string {
   const { example: _example, ...data } = state;
@@ -13,7 +14,7 @@ export function backup(): void {
   const a = h("a", { href: url, download: "internship-ledger-backup-" + new Date().toISOString().slice(0, 10) + ".json" });
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
-  toast("Backup saved. Check your Downloads folder.");
+  toast(t("Backup saved. Check your Downloads folder."));
 }
 /** Asks for a backup file, shows what's in it, and replaces the data only after the student confirms. */
 export function restore(): void {
@@ -28,16 +29,16 @@ export function restore(): void {
         const raw: unknown = JSON.parse(String(reader.result));
         if (!raw || typeof raw !== "object" || !("profile" in raw)) throw new Error("not a backup");
         next = normalize(raw);
-      } catch { toast("That file isn't an Internship Ledger backup."); return; }
+      } catch { toast(t("That file isn't a backup from this app.")); return; }
       ui.dialog = { kind: "restore", live: false };
       dlg().classList.remove("palette", "wide");
       dlg().replaceChildren(
-        dialogHead(null, "Restore this backup?", h("p", { class: "muted", style: "font-size:13px" },
-          file.name + ": " + next.profile.classes.length + " classes, " + next.plan.terms.length + " semesters, " + next.postings.length
-          + " postings. This replaces everything in the app now.")),
+        dialogHead(null, t("Restore this backup?"), h("p", { class: "muted", style: "font-size:13px" },
+          file.name + ": " + t("{classes} classes, {terms} semesters, {postings} postings. This replaces everything in the app now.",
+            { classes: next.profile.classes.length, terms: next.plan.terms.length, postings: next.postings.length }))),
         h("div", { class: "dlg-foot" },
-          h("button", { type: "button", class: "btn ghost", onclick: closeDialog }, "Cancel"),
-          h("button", { type: "button", class: "btn primary", onclick: () => { setState(next); closeDialog(); commit(); toast("Backup restored."); } }, "Replace my data")));
+          h("button", { type: "button", class: "btn ghost", onclick: closeDialog }, t("Cancel")),
+          h("button", { type: "button", class: "btn primary", onclick: () => { setState(next); closeDialog(); commit(); toast(t("Backup restored.")); } }, t("Replace my data"))));
       if (!dlg().open) dlg().showModal();
     };
     reader.readAsText(file);

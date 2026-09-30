@@ -1,5 +1,6 @@
 // DOM building blocks: elements, icons, and the toast
 import type { Kid, Shown } from "../types";
+import { k } from "../lib/i18n";
 
 // Attribute values are loosely typed on purpose: event handlers, strings, and booleans all go through here.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,6 +25,10 @@ export function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs?: Attrs |
   }
   for (const k of (kids as unknown[]).flat(Infinity)) if (k != null && k !== false) el.append(k instanceof Node ? k : document.createTextNode(String(k)));
   return el;
+}
+/** Text with **bold** parts, as nodes. Keeps a translated sentence whole instead of splitting it around the bold. */
+export function rich(text: string): Node[] {
+  return text.split("**").map((part, i) => i % 2 ? h("b", null, part) : document.createTextNode(part));
 }
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 export function toast(msg: string): void {
@@ -77,7 +82,7 @@ export function icon(name: string, cls?: string): SVGSVGElement {
 }
 export const STATUS_ICON: Record<Shown, string> = { yes: "check", partly: "partly", learning: "half", no: "dashed" };
 /** Badge style and label for each skill status. */
-export const STATUS_BADGE: Record<Shown, [cls: string, label: string]> = { yes: ["ok-solid", "Have"], learning: ["primary", "Studying"], partly: ["warn", "Partly"], no: ["", "Not yet"] };
+export const STATUS_BADGE: Record<Shown, [cls: string, label: string]> = { yes: ["ok-solid", k("Have")], learning: ["primary", k("Studying")], partly: ["warn", k("Partly")], no: ["", k("Not yet")] };
 export function statusIcon(v: Shown): SVGSVGElement { return icon(STATUS_ICON[v] || "dashed", "s-" + v); }
 
 export function fmt(n: number): string { return Number.isInteger(n) ? String(n) : n.toFixed(1); }

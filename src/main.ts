@@ -10,6 +10,7 @@ import { checkDeadlines } from "./ui/alerts";
 import { watchInstall } from "./ui/install";
 import { VIEWS } from "./ui/render";
 import { watchSwipe } from "./ui/swipe";
+import { lang, t } from "./lib/i18n";
 
 dlg().addEventListener("close", () => { ui.dialog = null; dlg().classList.remove("palette"); });
 dlg().addEventListener("click", e => { if (e.target === dlg()) closeDialog(); });
@@ -21,9 +22,10 @@ document.addEventListener("keydown", e => {
 });
 byId("startOwn").addEventListener("click", () => {
   setState(starterState()); ui.view = "plan"; ui.libFilter = "all"; ui.pane.plan = "left"; commit();
-  toast("Started your own plan. First, mark the GSU classes you've taken.");
+  toast(t("Started your own plan. First, mark the GSU classes you've taken."));
 });
 
+document.documentElement.lang = lang();
 setRenderer(render);
 render();
 setSave(state.example ? "example" : "local");

@@ -5,6 +5,7 @@ import { COURSE_BY_CODE } from "../data/courses";
 import { STATUSES } from "../data/statuses";
 import { termIndex } from "./plan";
 import { toast } from "../ui/dom";
+import { t } from "./i18n";
 
 export const LS_KEY = "internship-ledger-v1";
 
@@ -111,7 +112,7 @@ export function setSave(kind: "example" | "local" | "error"): void {
   const el = document.getElementById("saveState");
   if (!el) return;
   el.dataset.state = kind;
-  el.textContent = { example: "Example · not saved", local: "Saved in this browser", error: "Couldn't save. Browser storage is full or blocked" }[kind];
+  el.textContent = { example: t("Example · not saved"), local: t("Saved in this browser"), error: t("Couldn't save. Browser storage is full or blocked") }[kind];
 }
 function persist(): void {
   if (state.example) { setSave("example"); return; }
@@ -124,7 +125,7 @@ export function ensureOwn(): void {
   state = starterState();
   const banner = document.getElementById("exampleBanner");
   if (banner) banner.hidden = true;
-  toast("Cleared the example. This plan is yours now.");
+  toast(t("Cleared the example. This plan is yours now."));
 }
 /** Save, then redraw. Every change goes through here. */
 export function commit(): void { persist(); render(); }

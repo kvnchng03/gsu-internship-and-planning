@@ -2,6 +2,7 @@
 // A static site can't push while the app is closed; Google Calendar reminders cover that.
 import { state } from "../lib/store";
 import { dueInfo } from "../lib/postings";
+import { t } from "../lib/i18n";
 
 const SEEN_KEY = "internship-ledger-alerted";
 export const alertsSupported = (): boolean => "Notification" in window && "serviceWorker" in navigator;
@@ -26,7 +27,8 @@ export async function checkDeadlines(): Promise<void> {
   if (!due.length) return;
   const reg = await navigator.serviceWorker.ready;
   for (const { p, d } of due) {
-    await reg.showNotification((d?.level === "overdue" ? "Overdue: " : "Due soon: ") + (p.company || "Internship"), {
+    const name = p.company || t("Internship");
+    await reg.showNotification(d?.level === "overdue" ? t("Overdue: {name}", { name }) : t("Due soon: {name}", { name }), {
       body: (p.role ? p.role + " · " : "") + d?.text,
       tag: "deadline-" + p.id,
       icon: import.meta.env.BASE_URL + "pwa-192x192.png",

@@ -1,7 +1,8 @@
 // Internship postings: deadlines, duplicates, matching, and what the whole set asks for
 import type { Have, Posting, SkillHit, Status } from "../types";
 import { SKILL_BY_ID } from "../data/skills";
-import { OPEN_STATUSES, STATUS_LABEL } from "../data/statuses";
+import { OPEN_STATUSES, statusLabel } from "../data/statuses";
+import { fmtDate, t } from "./i18n";
 import { analyze, type HaveMap } from "./skills";
 import { commit, state } from "./store";
 import { toast } from "../ui/dom";
@@ -17,12 +18,12 @@ export function dueInfo(p: Posting, now: Date = new Date()): Due | null {
   if (isNaN(d.getTime())) return null;
   const today = new Date(now); today.setHours(0, 0, 0, 0);
   const days = Math.round((d.getTime() - today.getTime()) / 864e5); // whole calendar days, so tomorrow is 1
-  const label = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  if (!OPEN_STATUSES.includes(p.status)) return { text: "Due " + label, level: "", days };
-  if (days < 0) return { text: "Overdue · " + label, level: "overdue", days };
-  if (days <= 3) return { text: (days === 0 ? "Due today" : "Due in " + days + "d") + " · " + label, level: "urgent", days };
-  if (days <= 7) return { text: "Due in " + days + "d · " + label, level: "soon", days };
-  return { text: "Due " + label, level: "", days };
+  const date = fmtDate(d, { month: "short", day: "numeric" });
+  if (!OPEN_STATUSES.includes(p.status)) return { text: t("Due {date}", { date }), level: "", days };
+  if (days < 0) return { text: t("Overdue · {date}", { date }), level: "overdue", days };
+  if (days <= 3) return { text: (days === 0 ? t("Due today · {date}", { date }) : t("Due in {n}d · {date}", { n: days, date })), level: "urgent", days };
+  if (days <= 7) return { text: t("Due in {n}d · {date}", { n: days, date }), level: "soon", days };
+  return { text: t("Due {date}", { date }), level: "", days };
 }
 
 /** Link identity for spotting the same posting saved twice: ignores tracking junk, case, and trailing slashes. */
@@ -58,10 +59,10 @@ export function boardOrder(a: Posting, b: Posting): number {
   };
   return rank(a) - rank(b) || (a.deadline || "9999").localeCompare(b.deadline || "9999") || b.createdAt - a.createdAt;
 }
-export function togglePriority(p: Posting): void { p.priority = !p.priority; commit(); toast(p.priority ? "Marked as priority." : "Priority removed."); }
+export function togglePriority(p: Posting): void { p.priority = !p.priority; commit(); toast(p.priority ? t("Marked as priority.") : t("Priority removed.")); }
 export function setStatus(p: Posting, s: Status): void {
   if (p.status === s) return;
-  p.status = s; commit(); toast((p.company || "Posting") + " moved to " + STATUS_LABEL[s] + ".");
+  p.status = s; commit(); toast(t("{name} moved to {status}.", { name: p.company || t("Posting"), status: statusLabel(s) }));
 }
 
 export interface Tally { id: string; name: string; count: number; have: Have }
