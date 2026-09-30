@@ -22,7 +22,8 @@ The site is a web app you can install, and it works offline after the first visi
 
 ## Calendar view
 
-The **Calendar** tab shows two weeks at a time: your application deadlines, and (after you tap **Show my Google Calendar**) your Google Calendar events alongside them.
+The **Calendar** tab works like Google Calendar: day, week, and month views, a mini month to jump to any date, and a red line for the current time.
+It always shows your application deadlines (red when due within 3 days, amber within a week), and after you tap **Show Google Calendar**, your Google Calendar events alongside them.
 Nothing from your Google Calendar is saved in the app; it's read fresh each visit.
 
 ## Calendar and reminders

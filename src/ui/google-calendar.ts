@@ -118,54 +118,48 @@ export async function syncToGoogle(events: CalEvent[]): Promise<SyncResult> {
   return result;
 }
 
-/** One event on the schedule, from Google or from the app. */
-export interface ScheduleEvent {
+/** One event on the calendar, from Google or from the app. */
+export interface CalendarEvent {
   id: string;
   title: string;
-  /** YYYY-MM-DD the event is shown on. */
-  day: string;
-  /** "9:30 AM", or "" for all-day. */
-  time: string;
+  start: Date;
+  /** Exclusive end. All-day events end at midnight after their last day. */
+  end: Date;
   allDay: boolean;
+  source: "google" | "deadline";
   link?: string;
   location?: string;
+  /** For deadlines: which posting, and how urgent. */
+  postingId?: string;
+  level?: string;
 }
 
-const localDay = (d: Date) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const midnight = (date: string) => new Date(date + "T00:00:00");
 
 /**
- * Events from the student's main Google Calendar between two days (inclusive), one entry per day an event covers.
- * Deadlines this app synced are left out, since the schedule already shows them from the app.
+ * Events from the student's main Google Calendar that overlap [from, to).
+ * Deadlines this app synced are left out, since the calendar already shows them from the app.
  */
-export async function fetchGoogleEvents(fromDay: string, toDay: string): Promise<ScheduleEvent[]> {
+export async function fetchGoogleEvents(from: Date, to: Date): Promise<CalendarEvent[]> {
   const token = await getToken();
-  const timeMin = new Date(fromDay + "T00:00:00").toISOString();
-  const timeMax = new Date(nextDay(toDay) + "T00:00:00").toISOString();
   const items: GEvent[] = [];
   let pageToken = "";
   do {
-    const q = new URLSearchParams({ timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "250" });
+    const q = new URLSearchParams({ timeMin: from.toISOString(), timeMax: to.toISOString(), singleEvents: "true", orderBy: "startTime", maxResults: "250" });
     if (pageToken) q.set("pageToken", pageToken);
     const page = await api<{ items?: GEvent[]; nextPageToken?: string }>(token, API + "?" + q);
     items.push(...(page.items || []));
     pageToken = page.nextPageToken || "";
   } while (pageToken);
 
-  const out: ScheduleEvent[] = [];
+  const out: CalendarEvent[] = [];
   for (const e of items) {
     if (e.status === "cancelled" || e.extendedProperties?.private?.app === APP_TAG) continue;
     const allDay = !!e.start?.date;
-    const start = allDay ? new Date((e.start?.date || "") + "T00:00:00") : new Date(e.start?.dateTime || "");
-    // All-day events end the day after their last day; timed events end at their end time
-    const endRaw = allDay ? new Date((e.end?.date || e.start?.date || "") + "T00:00:00") : new Date(e.end?.dateTime || e.start?.dateTime || "");
-    const last = allDay ? new Date(endRaw.getTime() - 864e5) : endRaw;
-    if (isNaN(start.getTime())) continue;
-    const time = allDay ? "" : start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-    for (let d = new Date(start.getFullYear(), start.getMonth(), start.getDate()), n = 0; d <= last && n < 60; d.setDate(d.getDate() + 1), n++) {
-      const day = localDay(d);
-      if (day < fromDay || day > toDay) continue;
-      out.push({ id: e.id + "-" + day, title: e.summary || "(No title)", day, time: n === 0 ? time : "", allDay: allDay || n > 0, link: e.htmlLink, location: e.location });
-    }
+    const start = allDay ? midnight(e.start?.date || "") : new Date(e.start?.dateTime || "");
+    const end = allDay ? midnight(e.end?.date || nextDay(e.start?.date || "")) : new Date(e.end?.dateTime || e.start?.dateTime || "");
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) continue;
+    out.push({ id: e.id, title: e.summary || "(No title)", start, end: end > start ? end : new Date(start.getTime() + 30 * 60_000), allDay, source: "google", link: e.htmlLink, location: e.location });
   }
   return out;
 }

@@ -75,8 +75,10 @@ export interface UI {
   libQuery: string;
   libFilter: "all" | "open" | "elective" | "done";
   postTab: "board" | "results";
-  /** First day (a Sunday) of the two weeks shown in the Calendar view, YYYY-MM-DD. */
+  /** The date the Calendar view is centered on, YYYY-MM-DD ("" means today). */
   calFrom: string;
+  /** Day, week, or month; "" picks day on phones and week elsewhere. */
+  calMode: "" | "day" | "week" | "month";
   dialog: DialogState | null;
   armed: string | null;
   openSkills: Set<string>;

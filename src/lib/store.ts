@@ -95,6 +95,7 @@ export const ui: UI = {
   libFilter: "all",
   postTab: "board",
   calFrom: "",
+  calMode: "",
   dialog: null,
   armed: null,
   openSkills: new Set(),
