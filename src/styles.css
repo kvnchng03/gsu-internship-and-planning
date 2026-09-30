@@ -85,7 +85,10 @@ h1, h2, h3, h4, p { margin: 0; }
 .banner { flex: none; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 6px 12px; font-size: 13px; background: var(--muted); border-bottom: 1px solid var(--border); flex-wrap: wrap; text-align: center; }
 
 .rail { flex: none; display: flex; align-items: center; gap: 24px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
-.rail-groups { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.rail-stats .ico { color: var(--primary); }
+/* Each box is at least as wide as its name and count and stops growing at a comfortable width, so on wide
+   screens a name and its count stay close together and on narrow ones nothing overlaps */
+.rail-groups { flex: 0 1 auto; display: grid; grid-template-columns: repeat(5, minmax(max-content, 230px)); gap: 12px; }
 .grp-lower { --g: var(--g-lower); }
 .grp-foundation { --g: var(--g-foundation); }
 .grp-core { --g: var(--g-core); }
@@ -104,8 +107,12 @@ h1, h2, h3, h4, p { margin: 0; }
 .rg .bar .d { background: var(--g); }
 .rg .bar .p { background: color-mix(in srgb, var(--g) 40%, transparent); }
 .rg .bar .b { background: var(--destructive); }
-.rail-stats { flex: none; display: flex; align-items: center; gap: 14px; white-space: nowrap; font-size: 13px; color: var(--muted-foreground); }
+.rail-stats { flex: none; display: flex; align-items: center; gap: 14px; white-space: nowrap; font-size: 13px; color: var(--muted-foreground); padding-left: 24px; border-left: 1px solid var(--border); }
 .rail-stats b { font-weight: 600; color: var(--foreground); }
+/* Mid-size windows: the totals give way to the boxes (the Can I graduate? panel shows them too), and the header
+   drops the app's name so the view switch and save status fit */
+@media (min-width: 901px) and (max-width: 1250px) { .rail-stats { display: none; } }
+@media (min-width: 901px) and (max-width: 1100px) { .brand .name { display: none; } }
 @media (max-width: 900px) {
   /* Phones: the five requirement groups scroll sideways instead of squeezing together */
   .rail { gap: 12px; padding: 8px 12px; overflow-x: auto; scrollbar-width: none; }

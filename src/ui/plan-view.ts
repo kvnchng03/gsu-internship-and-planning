@@ -57,7 +57,7 @@ function rail(ctx: PlanContext, status: StatusOf): HTMLElement {
     h("div", { class: "rail-stats" },
       h("span", null, h("b", { class: "mono" }, done), " done"),
       h("span", null, h("b", { class: "mono" }, planned), " planned"),
-      early && !early.done ? h("span", { style: "display:inline-flex;align-items:center;gap:4px", title: "Earliest possible finish" }, icon("cap", "sm"), h("b", { class: "mono" }, shortTerm(early.id))) : null));
+      early && !early.done ? h("span", { style: "display:inline-flex;align-items:center;gap:5px", title: "Earliest you could graduate" }, icon("cap", "sm"), "Earliest finish ", h("b", { class: "mono" }, shortTerm(early.id))) : null));
 }
 
 function libraryPane(ctx: PlanContext, terms: Term[], status: StatusOf): Kid[] {
