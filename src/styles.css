@@ -526,10 +526,10 @@ button.chip:hover { background: var(--accent); }
   /* Internships: view switch and buttons on one line, the counts on their own line below */
   .ptop { gap: 8px; padding: 8px 12px; }
   .ptop .pstats { order: 5; flex-basis: 100%; }
-  /* Columns swipe sideways; a scrollbar floating mid-screen only adds clutter */
-  .kanban { grid-auto-columns: minmax(250px, 82vw); padding: 12px; scroll-snap-type: x mandatory; scrollbar-width: none; }
-  .kanban::-webkit-scrollbar { display: none; }
-  .kcol { scroll-snap-align: start; }
+  /* Phones: the statuses stack top to bottom at full width instead of columns cut off at the edge. Empty ones
+     are left out (the counts above still show them), and cards change status from their details. */
+  .kanban { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: minmax(0, 1fr); overflow: visible; padding: 12px 12px 24px; }
+  .kcol.empty { display: none; }
   .attn { padding: 12px 12px 0; }
   /* Posting details: the name gets the full width; the controls go on the next line */
   .card-head { flex-wrap: wrap; position: relative; }
@@ -604,6 +604,8 @@ button.chip:hover { background: var(--accent); }
   .kcol-head .n { font-size: 12px; }
   .kcard { padding: 12px 8px 12px 14px; }
   .kcard .co { font-size: 15px; }
+  /* The star keeps its big tap area without pushing the role line down */
+  .kcard .star { margin: -9px -4px -9px 0; }
   .kcard .ro { font-size: 13px; }
   .kcard .match { font-size: 12.5px; }
   .due { font-size: 12px; padding: 3px 8px; }

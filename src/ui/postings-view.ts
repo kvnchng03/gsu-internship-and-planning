@@ -67,7 +67,7 @@ export function postingsView(have: HaveMap): HTMLElement[] {
   const cols = STATUSES.map(st => {
     const list = posts.filter(p => p.status === st).sort(boardOrder);
     return h("section", {
-      class: "kcol st-" + STATUS_KEY[st], "aria-label": STATUS_LABEL[st],
+      class: "kcol st-" + STATUS_KEY[st] + (list.length ? "" : " empty"), "aria-label": STATUS_LABEL[st],
       ondragover: (e: DragEvent) => {
         if (!e.dataTransfer?.types.includes("text/x-posting")) return;
         e.preventDefault(); (e.currentTarget as HTMLElement).classList.add("drop");
