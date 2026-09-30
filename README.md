@@ -2,7 +2,7 @@
 
 A free planner for Georgia State accounting (B.B.A.) students.
 
-**Live site:** https://kvnchng03.github.io/gsu-internship-and-planning/
+**Live site:** https://kvnchng03.github.io/school-and-planning/
 
 ## What it does
 
