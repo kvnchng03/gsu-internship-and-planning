@@ -396,6 +396,7 @@ dialog.dlg::backdrop { background: oklch(0 0 0 / 0.45); }
 .req-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .req-item .mono { font-weight: 600; font-size: 12px; }
 .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+select.input.status-select { width: auto; height: 28px; font-size: 12px; }
 .chip { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 6px; font-size: 12px; background: var(--muted); }
 button.chip:hover { background: var(--accent); }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -498,7 +499,9 @@ button.chip:hover { background: var(--accent); }
   .kcol { scroll-snap-align: start; }
   .attn { padding: 12px 12px 0; }
   /* Posting details: the name gets the full width; the controls go on the next line */
-  .card-head { flex-wrap: wrap; }
+  .card-head { flex-wrap: wrap; position: relative; }
+  .card-head .t { padding-right: 40px; }
+  .card-head .close-x { position: absolute; top: 8px; right: 8px; }
   /* Calendar: compact toolbar, narrow hour gutter, smaller month cells */
   .gcal-bar { flex-wrap: wrap; padding: 8px 12px; }
   .gcal-title { font-size: 16px; flex: 1 1 100%; order: 10; margin: 4px 0 0; }
@@ -513,3 +516,97 @@ button.chip:hover { background: var(--accent); }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Phones and other touch screens: readable text (12px and up), tap targets of about 40px, and 16px inputs so
+   iPhone doesn't zoom the page when one is tapped. Last in the file so it wins over the desktop sizes above. */
+@media (max-width: 560px), (pointer: coarse) {
+  body { font-size: 15px; }
+  .input, select.input, textarea.input, .tags input, input[type="search"] { font-size: 16px; }
+  .input, select.input { height: 42px; }
+  .btn { height: 42px; font-size: 14px; }
+  .btn.sm { height: 40px; font-size: 13.5px; }
+  .icon-btn { width: 40px; height: 40px; }
+  .icon-btn .ico { width: 18px; height: 18px; }
+  .star { width: 40px; height: 40px; }
+  .seg button { height: 38px; font-size: 13px; padding: 0 12px; }
+  .toggle { height: 38px; padding: 0 12px; font-size: 13.5px; }
+  .toggle .n { font-size: 12px; }
+  .kicker, .group-label, .group-label[class*="grp-"], .year-label, .status-head .cnt, .pane-foot { font-size: 12px; }
+  select.input.status-select { height: 40px; font-size: 16px; }
+  .dlg-sec .chips .badge, .card-head .chips a.badge { height: 34px; }
+  .note, .muted { font-size: 13px; }
+  .badge, .badge.mono { height: 26px; font-size: 12px; padding: 0 8px; }
+  .chip { height: 34px; font-size: 13.5px; padding: 0 10px; }
+  .tag { height: 34px; font-size: 14px; }
+  .tag button { width: 30px; height: 30px; }
+  .links a { height: 38px; font-size: 13.5px; }
+  .mobile-tabs button { min-height: 58px; font-size: 12px; }
+
+  /* Plan */
+  .rg .top, .rail-stats { font-size: 13px; }
+  .rg .top .mono { font-size: 13px; }
+  .lib-row { padding: 12px 14px; }
+  .lib-row .code, .lib-row .title { font-size: 14px; }
+  .lib-row .l2 { font-size: 12.5px; }
+  .term-head h3 { font-size: 17px; }
+  .term-meta { font-size: 12.5px; }
+  .slot { padding: 6px 4px 6px 12px; }
+  .slot .code, .slot .title { font-size: 14px; }
+  .empty-slot { font-size: 13px; }
+  .check > summary { padding: 11px 8px; font-size: 14.5px; }
+  .check > summary .n { font-size: 12.5px; }
+  .check-body { font-size: 13.5px; }
+  .check-body button { min-height: 36px; }
+  .verdict .detail { font-size: 13px; }
+
+  /* Internships */
+  .pstats { font-size: 13px; }
+  .kcol-head { font-size: 14px; }
+  .kcol-head .n { font-size: 12px; }
+  .kcard { padding: 12px 8px 12px 14px; }
+  .kcard .co { font-size: 15px; }
+  .kcard .ro { font-size: 13px; }
+  .kcard .match { font-size: 12.5px; }
+  .due { font-size: 12px; padding: 3px 8px; }
+  .attn-h { font-size: 13px; }
+  .attn-item { height: 36px; font-size: 13px; }
+  .skill-line { padding: 10px 8px; font-size: 14.5px; }
+  .skill-line .st { font-size: 12px; }
+  .tick { width: 16px; height: 10px; }
+  .freq-row { font-size: 14px; padding: 8px 4px; }
+  .freq-row .fn { font-size: 12.5px; }
+  details.raw summary { font-size: 13.5px; padding: 8px 0; }
+
+  /* Skills */
+  .skill-card > summary { padding: 14px 12px; }
+  .skill-card > summary .nm { font-size: 15px; }
+  .cat { font-size: 12px; }
+  .skill-body { font-size: 14.5px; }
+  .skill-body h4 { font-size: 12px; }
+  .suggest button { height: 34px; font-size: 13px; }
+
+  /* Calendar */
+  .tg-hour, .tg-gutter-label { font-size: 12px; }
+  .tg-date .dow { font-size: 12px; }
+  .gcal-main { --gutter: 50px; }
+  .chip-ev { font-size: 12px; line-height: 20px; padding: 1px 5px; }
+  .gev.block { font-size: 12.5px; }
+  .gev .gt { font-size: 12px; }
+  .mg-num { font-size: 13px; height: 28px; }
+  .mg-more { font-size: 12.5px; min-height: 28px; }
+
+  /* Dialogs and forms */
+  .dlg-head h2 { font-size: 19px; }
+  .dlg-sec { font-size: 14.5px; }
+  .field { font-size: 13.5px; }
+  .req-item .mono { font-size: 13px; }
+  .pal-item { min-height: 44px; font-size: 14.5px; }
+  .pal-item .pal-hint { font-size: 12px; }
+  .sum-row, .sum-term .ln { font-size: 14px; }
+  .sum-row .n, .sum-term .ln .mono { font-size: 13px; }
+}
+
+/* Touch screens can't hover, so controls that appear on hover are always shown there */
+@media (hover: none) {
+  .slot .rm { opacity: 1; }
+}

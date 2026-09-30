@@ -54,7 +54,7 @@ export function skillsView(have: HaveMap): HTMLElement[] {
     h("div", { class: "side-sec" }, h("h3", null, "Resume bullets"),
       h("p", { class: "note" }, "Paste the bullets from your resume, one per line. Each posting then shows which ones to lead with and what to reword."),
       (() => {
-        const ta = h("textarea", { class: "input", id: "p-resume", style: "min-height:150px;font-size:12.5px", placeholder: "Processed bi-weekly payroll for 6 staff\nTracked vendor invoices for 4 projects",
+        const ta = h("textarea", { class: "input", id: "p-resume", style: "min-height:150px", placeholder: "Processed bi-weekly payroll for 6 staff\nTracked vendor invoices for 4 projects",
           onchange: (e: Event) => { ensureOwn(); state.profile.resume = inputValue(e); commit(); } });
         ta.value = p.resume;
         return ta;

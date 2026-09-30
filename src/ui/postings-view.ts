@@ -121,7 +121,7 @@ export function postingCard(p: Posting, have: HaveMap): HTMLElement {
         p.link ? h("a", { class: "badge", href: p.link, target: "_blank", rel: "noopener", style: "text-decoration:none" }, "Open posting", icon("external", "sm")) : null,
         ...deadlineEvents([p]).map(e => h("a", { class: "badge", href: googleCalendarUrl(e), target: "_blank", rel: "noopener", style: "text-decoration:none" }, icon("calendar", "sm"), "Add to Google Calendar")))),
     h("button", { type: "button", class: "star" + (p.priority ? " on" : ""), "aria-pressed": String(p.priority), title: p.priority ? "Remove priority" : "Mark as priority", onclick: () => togglePriority(p) }, icon("star")),
-    h("select", { class: "input", id: "status-" + p.id, style: "width:auto;height:28px;font-size:12px", "aria-label": "Status",
+    h("select", { class: "input status-select", id: "status-" + p.id, "aria-label": "Status",
       onchange: (e: Event) => setStatus(p, (e.target as HTMLSelectElement).value as Status) }, ...STATUSES.map(s => h("option", { value: s, selected: s === p.status }, STATUS_LABEL[s]))),
     h("button", { type: "button", class: "icon-btn", "aria-label": "Edit posting", title: "Edit", onclick: () => openPostingForm(p) }, icon("pencil", "sm")),
     h("button", { type: "button", class: "icon-btn", style: armed ? "color:var(--destructive)" : null, "aria-label": armed ? "Confirm delete" : "Delete posting", title: armed ? "Tap again to delete" : "Delete",
@@ -129,7 +129,7 @@ export function postingCard(p: Posting, have: HaveMap): HTMLElement {
         if (!armed) { ui.armed = armKey; render(); armLater(armKey); return; }
         ui.armed = null; state.postings = state.postings.filter(x => x.id !== p.id); closeDialog(); commit(); toast("Posting deleted.");
       } }, icon(armed ? "alert" : "trash", "sm")),
-    h("button", { type: "button", class: "icon-btn", "aria-label": "Close", onclick: closeDialog }, icon("x"))));
+    h("button", { type: "button", class: "icon-btn close-x", "aria-label": "Close", onclick: closeDialog }, icon("x"))));
   if (m.total) {
     secs.push(h("div", { class: "card-sec" },
       h("div", { class: "meter" },
