@@ -1,4 +1,4 @@
-# GSU Internship & Planning
+#School and Internship & Planning
 
 A free planner for Georgia State accounting (B.B.A.) students.
 
