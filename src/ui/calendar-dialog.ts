@@ -23,7 +23,12 @@ function drawCalendar(busy = false): void {
         ? n + " application deadline" + (n === 1 ? "" : "s") + " still ahead of you. Put them in your calendar so your phone reminds you."
         : "None of your saved postings has a deadline you still need to apply by.")),
   ];
-  if (googleSyncAvailable()) {
+  if (googleSyncAvailable() && state.example) {
+    // Example postings must never land in someone's real calendar
+    sections.push(h("div", { class: "dlg-sec" },
+      h("div", { class: "kicker" }, "Google Calendar"),
+      h("p", { class: "note" }, "These are example postings. Click \u201CStart my own\u201D at the top and add your real postings, then sync them to Google Calendar.")));
+  } else if (googleSyncAvailable()) {
     sections.push(h("div", { class: "dlg-sec" },
       h("div", { class: "kicker" }, "Google Calendar"),
       h("p", { class: "note" }, "Adds each deadline to your Google Calendar, with phone reminders at 9am three days before and the day before. Sync again after changes; it updates the same events instead of adding copies."),
